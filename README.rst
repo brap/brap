@@ -73,7 +73,8 @@ registered in the container).
 
 .. code-block:: python
 
-    container.factory('uuid',
+    container.factory(
+        'uuid',
         lambda container: uuid.uuid4()
     )
 
@@ -113,7 +114,7 @@ may wish to define a simple provider interface:
 
     from brap import ProviderInterface
 
-    class ERBTemplateEngineProvider(ProviderInterface)
+    class ERBTemplateEngineProvider(ProviderInterface):
         def register(self, container):
             container.set(
                 'file_parser',  # no magic here, string can be anything
