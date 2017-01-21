@@ -1,26 +1,25 @@
-brap
-====
+#brap
 
 Brap is a dependency injection container for Python3.
 
-Meant to be pimple-like.
+
+[![Build Status](https://travis-ci.org/Incognito/brap.svg?branch=master)](https://travis-ci.org/Incognito/brap)
 
 
-Usage
------
+##Usage
 
 Create a container
 
-.. code-block:: python
+```python
     from brap import Container
 
     container = Container()
+```
 
 Brap contains services and parameters.
 
 
-Defining Services
-~~~~~~~~~~~~~~~~~
+##Defining Services
 
 Services are instances that are unlikely to be created multiple times. A
 templating service used by a framework that only has one instance is an example
@@ -32,7 +31,8 @@ database is not a service object.
 A lambda is used so the container can look up other parameters in that container
 at time of creation.
 
-.. code-block:: python
+
+```python
     from brap import Container
 
     container = Container()
@@ -46,13 +46,14 @@ at time of creation.
         'template_engine', 
         lambda container: TemplateEngine(container.get('file_parser'))
     )
+```
 
 If you are ready to use the template engine, use the same instance of container
 from above to get (the container is not global).
 
 
-.. code-block:: python
 
+```python
     template_engine = container.get('template_engine')
 
     rendered_template = template_engine.render('some_ruby_template.erb', {
@@ -61,47 +62,48 @@ from above to get (the container is not global).
         cv2_code: "117"
         expiry: "1219"
     })
+```
 
 
-Defining Factory Services
-~~~~~~~~~~~~~~~~~~~~~~~~~
+##Defining Factory Services
 
 A factory is just like a service, except when you call the factory it will
 return a new instance (instead of providing a reference to the single instance
 registered in the container).
 
 
-.. code-block:: python
-
+```python
     container.factory(
         'uuid',
         lambda container: uuid.uuid4()
     )
 
     container.get('uuid')  # Returns new uuid
+```
 
 
 
-Setting Parameters
-~~~~~~~~~~~~~~~~~~
+##Setting Parameters
 
 Parameters are just like services, except they are not callable
 
-.. code-block:: python
+
+```python
     container.set('database_password', 'swordfish')
+```
 
 
 This lets you do things such as:
 
-.. code-block:: python
 
+```python
     container.set(
         'database_connection', 
         lambda container: Database(container.get('database_password'))
     )
+```
 
-Extending a Container
-~~~~~~~~~~~~~~~~~~~~~
+##Extending a Container
 
 One of the big advantages of picking a DI container is the reusability of a set
 of services.
@@ -109,9 +111,9 @@ of services.
 If you have an encapsulated concept that could in theory become a package, you
 may wish to define a simple provider interface:
 
-.. code-block:: python
 
 
+```python
     from brap import ProviderInterface
 
     class ERBTemplateEngineProvider(ProviderInterface):
@@ -127,12 +129,14 @@ may wish to define a simple provider interface:
                 'template_engine', 
                 lambda container: TemplateEngine(container.get('file_parser'))
             )
+```
 
 
 Now in some other code base you can load all that configuration up:
 
-.. code-block:: python
 
+```python
     container.set('file_path_parameter', '/path/to/templates')
     container.register(ERBTemplateEngineProvider())
     rendered_template = template_engine.render('template.erb', {})
+```
