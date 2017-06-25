@@ -1,4 +1,4 @@
-#brap
+# brap
 
 Brap is a dependency injection container for Python3.
 
@@ -6,7 +6,7 @@ Brap is a dependency injection container for Python3.
 [![Build Status](https://travis-ci.org/Incognito/brap.svg?branch=master)](https://travis-ci.org/Incognito/brap)
 
 
-##Usage
+## Usage
 
 Create a container
 
@@ -19,7 +19,7 @@ Create a container
 Brap contains services and parameters.
 
 
-##Defining Services
+## Defining Services
 
 Services are instances that are unlikely to be created multiple times. A
 templating service used by a framework that only has one instance is an example
@@ -65,7 +65,7 @@ from above to get (the container is not global).
 ```
 
 
-##Defining Factory Services
+## Defining Factory Services
 
 A factory is just like a service, except when you call the factory it will
 return a new instance (instead of providing a reference to the single instance
@@ -83,7 +83,7 @@ registered in the container).
 
 
 
-##Setting Parameters
+## Setting Parameters
 
 Parameters are just like services, except they are not callable
 
@@ -103,7 +103,7 @@ This lets you do things such as:
     )
 ```
 
-##Extending a Container
+## Extending a Container
 
 One of the big advantages of picking a DI container is the reusability of a set
 of services.
