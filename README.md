@@ -39,17 +39,21 @@ at time of creation.
 
     container.set(
         'file_parser',  # no magic here, string can be anything
-        lambda container: ERBFileParser()
+        ERBFileParser  # Do not invoke constructor
     )
 
     container.set(
         'template_engine', 
-        lambda container: TemplateEngine(container.get('file_parser'))
+        TemplateEngine,
+        ['file_parser']  # Reference to service injected to TemplateEngine
     )
 ```
 
 If you are ready to use the template engine, use the same instance of container
 from above to get (the container is not global).
+
+
+# TODO Update rest of documentation from 1.0 to 2.0
 
 
 
