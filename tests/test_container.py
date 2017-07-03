@@ -1,4 +1,5 @@
 from unittest import TestCase
+import uuid  # Used to ensure multiple results are different
 
 from brap.container import Container, ProviderInterface
 
@@ -9,6 +10,10 @@ class FixtureService(object):
     """
     def __init__(self, value):
         self.value = value
+        self.other_value = None
+
+    def set_other_value(self, other_value):
+        self.other_value = other_value
 
 
 class FactoryFixture(object):
@@ -25,9 +30,10 @@ class ContainerTestCase(TestCase):
         with self.assertRaises(Exception):
             container.get('not_a_real_id')
 
-    def test_set_and_get_by_id_for_lambda(self):
+    def test_set_and_get_by_id_for_class(self):
         container = Container()
-        container.set('fixture_service', lambda container: FixtureService(1))
+        container.set('fixture_service_param', 1)
+        container.set('fixture_service', FixtureService, ['fixture_service_param'])
         fixture_service = container.get('fixture_service')
 
         self.assertTrue(isinstance(fixture_service, FixtureService))
@@ -39,35 +45,42 @@ class ContainerTestCase(TestCase):
 
         self.assertEqual('Some param', param)
 
-    def test_two_containers_do_not_share_services(self):
+    def test_set_and_get_by_id_for_class(self):
         container = Container()
-        container.set('ser1', lambda container: FixtureService(1))
-        container.set('ser2', lambda container: FixtureService(2))
 
-        s1 = container.get('ser1')
-        s2 = container.get('ser2')
-        self.assertEqual(1, s1.value)
-        self.assertEqual(2, s2.value)
+        def test_fn():
+            return uuid.uuid4()
+
+        container.set('fn', test_fn)
+        call1 = container.get('fn')
+        call2 = container.get('fn')
+
+        self.assertNotEqual(call1, call2)
+
+    def test_two_containers_do_not_share_services(self):
+        container1 = Container()
+        container2 = Container()
+
+        container1.set('fixture_service_param', 'container1')
+        container2.set('fixture_service_param', 'container2')
+
+        # Intentionally giving services same id
+        container1.set('ser1', FixtureService, ['fixture_service_param'])
+        container2.set('ser1', FixtureService, ['fixture_service_param'])
+
+        s1 = container1.get('ser1')
+        s2 = container2.get('ser1')
+        self.assertEqual('container1', s1.value)
+        self.assertEqual('container2', s2.value)
 
     def test_service_returns_same_object(self):
         container = Container()
-        container.set('ser1', lambda container: FixtureService(1))
+        container.set('fixture_service_param', 'container1')
+        container.set('ser1', FixtureService, ['fixture_service_param'])
 
         s1 = container.get('ser1')
         s1_retrieved_twice = container.get('ser1')
         self.assertEqual(s1, s1_retrieved_twice)
-
-    def test_container_is_provided_to_lambda(self):
-        container = Container()
-        container.set('param', 'Some param')
-
-        container.set(
-            'ser',
-            lambda c: FixtureService(c.get('param'))
-        )
-
-        ser = container.get('ser')
-        self.assertEqual('Some param', ser.value)
 
     def test_none_is_a_valid_parameter(self):
         container = Container()
@@ -78,25 +91,40 @@ class ContainerTestCase(TestCase):
     def test_set_by_factory_and_get_by_id(self):
         container = Container()
 
-        container.factory(
-            'factory',
-            lambda container: FactoryFixture()
-        )
+        container.factory('factory', FactoryFixture)
         fac1 = container.get('factory')
         fac2 = container.get('factory')
 
         self.assertNotEqual(fac1, fac2)
 
+    def test_set_and_get_by_id_for_class_with_method_calls(self):
+        container = Container()
+
+        # I mix short and long form names to test against the key/value being confused internally
+        container.set('const_param', 'constructor_param')
+        container.set('meth_param', 'method_param')
+        container.set('fixture_service',
+            FixtureService,
+            ['const_param'],
+            [
+                ('set_other_value', ['meth_param'])
+            ]
+        )
+        fixture_service = container.get('fixture_service')
+        self.assertEqual(fixture_service.value, 'constructor_param')
+        self.assertEqual(fixture_service.other_value, 'method_param')
+
     def test_register_provider(self):
         class FixtureProvider(ProviderInterface):
-            def register(self, c):
+            def register(self, container):
                 container.set(
                     'fixture_provided_service',
-                    lambda container: FixtureService(c.get('param'))
+                    FixtureService,
+                    ['param']
                 )
 
         container = Container()
-        container.register(FixtureProvider())  # Intentionally defined before fixture_param.
+        container.registerProvider(FixtureProvider())  # Intentionally defined before fixture_param.
         container.set('param', 'fixture_param')  # Intentionally defined after registering provider to ensure lazy loading.
         provided = container.get('fixture_provided_service')
 

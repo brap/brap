@@ -35,16 +35,25 @@ at time of creation.
 ```python
     from brap import Container
 
-    container = Container()
+    # Ideally, the classes would be in a different file and imported here
+    class ERBFileParser(object):
+        pass
+
+    class TemplateEngine(object):
+        def __init__(self, parser):  # We want to inject the ERB parser here
+            self._parser = parser
+
+    container = Container()  # Create one instance of a container
 
     container.set(
         'file_parser',  # no magic here, string can be anything
-        lambda container: ERBFileParser()
+        ERBFileParser  # Do not invoke constructor
     )
 
     container.set(
         'template_engine', 
-        lambda container: TemplateEngine(container.get('file_parser'))
+        TemplateEngine,
+        ['file_parser']  # Reference to service injected to TemplateEngine
     )
 ```
 
@@ -75,12 +84,11 @@ registered in the container).
 ```python
     container.factory(
         'uuid',
-        lambda container: uuid.uuid4()
+        uuid.uuid4  # Do not invoke with ()
     )
 
     container.get('uuid')  # Returns new uuid
 ```
-
 
 
 ## Setting Parameters
@@ -93,13 +101,14 @@ Parameters are just like services, except they are not callable
 ```
 
 
-This lets you do things such as:
+This lets you do useful things such as:
 
 
 ```python
     container.set(
-        'database_connection', 
-        lambda container: Database(container.get('database_password'))
+        'database_connection',
+        Database,
+        ['database_password']
     )
 ```
 
@@ -120,14 +129,14 @@ may wish to define a simple provider interface:
         def register(self, container):
             container.set(
                 'file_parser',  # no magic here, string can be anything
-                lambda container: ERBFileParser(
-                    container.get('file_path_parameter')
-                )
+                ERBFileParser,  # Class we're using
+                ['file_path_parameter']  # Services/parameters injected into constructor
             )
 
             container.set(
                 'template_engine', 
-                lambda container: TemplateEngine(container.get('file_parser'))
+                TemplateEngine,
+                ['file_parser']
             )
 ```
 
@@ -140,3 +149,8 @@ Now in some other code base you can load all that configuration up:
     container.register(ERBTemplateEngineProvider())
     rendered_template = container.get('template_engine').render('template.erb', {})
 ```
+
+
+## TODO
+Document how adding a function works, because it doesn't get memoized
+Document how injection via method calls works
