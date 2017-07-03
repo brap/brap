@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from brap.graph import Graph, ServiceNode, GraphAnalyzer
+from brap.graph import Graph, RegisteredNode, GraphAnalyzer
 
 
 class FixtureService(object):
@@ -17,36 +17,36 @@ class GraphTestCase(TestCase):
         self.assertTrue(isinstance(graph, Graph))
 
     def test_create_service_node(self):
-        serviceNode = ServiceNode(
-            'ServiceNode',
+        serviceNode = RegisteredNode(
+            'RegisteredNode',
             ['service','service1']
         )
-        self.assertTrue(isinstance(serviceNode, ServiceNode))
+        self.assertTrue(isinstance(serviceNode, RegisteredNode))
 
     def test_create_service_node_returns_id(self):
-        serviceNode = ServiceNode(
-            'ServiceNode',
+        serviceNode = RegisteredNode(
+            'RegisteredNode',
             ['service','service1']
         )
-        self.assertEqual('ServiceNode', serviceNode.get_id())
+        self.assertEqual('RegisteredNode', serviceNode.get_id())
 
     def test_nodes_added_to_graph_can_be_retrieved(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1')
-        serviceNode2 = ServiceNode('ServiceNode2')
+        serviceNode1 = RegisteredNode('RegisteredNode1')
+        serviceNode2 = RegisteredNode('RegisteredNode2')
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
 
-        self.assertEqual('ServiceNode1', graph.get_node_by_id('ServiceNode1').get_id())
-        self.assertEqual('ServiceNode2', graph.get_node_by_id('ServiceNode2').get_id())
+        self.assertEqual('RegisteredNode1', graph.get_node_by_id('RegisteredNode1').get_id())
+        self.assertEqual('RegisteredNode2', graph.get_node_by_id('RegisteredNode2').get_id())
 
     def test_duplicate_node_id_rejection(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('common_id')
-        serviceNode2 = ServiceNode('common_id')
+        serviceNode1 = RegisteredNode('common_id')
+        serviceNode2 = RegisteredNode('common_id')
 
         with self.assertRaises(ValueError):  # TODO more specific exception
             graph.add_node(serviceNode1)
@@ -55,48 +55,48 @@ class GraphTestCase(TestCase):
     def test_create_node_with_dependency(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1')
-        serviceNode2 = ServiceNode('ServiceNode2', ['ServiceNode1'])
-        serviceNode3 = ServiceNode('ServiceNode3', ['ServiceNode2', 'ServiceNode1'])
+        serviceNode1 = RegisteredNode('RegisteredNode1')
+        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
+        serviceNode3 = RegisteredNode('RegisteredNode3', ['RegisteredNode2', 'RegisteredNode1'])
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
         graph.add_node(serviceNode3)
 
         self.assertEqual([
-            ('ServiceNode1', []),
-            ('ServiceNode2', ['ServiceNode1']),
-            ('ServiceNode3', ['ServiceNode2', 'ServiceNode1']),
+            ('RegisteredNode1', []),
+            ('RegisteredNode2', ['RegisteredNode1']),
+            ('RegisteredNode3', ['RegisteredNode2', 'RegisteredNode1']),
         ], graph.get_dependency_lists())
 
     def test_create_node_with_unregistered_dependency(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1', ['Unregistered'])
+        serviceNode1 = RegisteredNode('RegisteredNode1', ['Unregistered'])
 
         graph.add_node(serviceNode1)
 
         self.assertEqual([
             ('Unregistered', []),
-            ('ServiceNode1', ['Unregistered']),
+            ('RegisteredNode1', ['Unregistered']),
         ], graph.get_dependency_lists())
 
     def test_create_node_with_unregistered_dependency_complex(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1')
-        serviceNode2 = ServiceNode('ServiceNode2', ['ServiceNode1'])
-        serviceNode3 = ServiceNode('ServiceNode3', ['ServiceNode2', 'Unregistered'])
+        serviceNode1 = RegisteredNode('RegisteredNode1')
+        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
+        serviceNode3 = RegisteredNode('RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
         graph.add_node(serviceNode3)
 
         self.assertEqual([
-            ('ServiceNode1', []),
-            ('ServiceNode2', ['ServiceNode1']),
+            ('RegisteredNode1', []),
+            ('RegisteredNode2', ['RegisteredNode1']),
             ('Unregistered', []),
-            ('ServiceNode3', ['ServiceNode2', 'Unregistered'])
+            ('RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
         ], graph.get_dependency_lists())
 
 
@@ -104,8 +104,8 @@ class GraphAnalyzerTestCase(TestCase):
     def test_topological_sort_basic(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1')
-        serviceNode2 = ServiceNode('ServiceNode2', ['ServiceNode1'])
+        serviceNode1 = RegisteredNode('RegisteredNode1')
+        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
@@ -115,17 +115,17 @@ class GraphAnalyzerTestCase(TestCase):
         self.assertEqual([], analysis.get_unregistered_nodes())
         self.assertEqual([], analysis.get_circular_dependencies())
         self.assertEqual(
-            ['ServiceNode1', 'ServiceNode2'],
+            ['RegisteredNode1', 'RegisteredNode2'],
             [node.get_id() for node in analysis.get_sorted_nodes()]
         )
 
     def test_topological_sort_complex(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1')
-        serviceNode2 = ServiceNode('ServiceNode2', ['ServiceNode1'])
-        serviceNode3 = ServiceNode('ServiceNode3', ['ServiceNode2', 'Unregistered'])
-        serviceNode4 = ServiceNode('ServiceNode4', ['ServiceNode2', 'Unregistered'])
+        serviceNode1 = RegisteredNode('RegisteredNode1')
+        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
+        serviceNode3 = RegisteredNode('RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
+        serviceNode4 = RegisteredNode('RegisteredNode4', ['RegisteredNode2', 'Unregistered'])
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
@@ -141,11 +141,11 @@ class GraphAnalyzerTestCase(TestCase):
         self.assertEqual([], analysis.get_circular_dependencies())
         self.assertEqual(
             [
-                'ServiceNode1',
-                'ServiceNode2',
+                'RegisteredNode1',
+                'RegisteredNode2',
                 'Unregistered',
-                'ServiceNode3',
-                'ServiceNode4'
+                'RegisteredNode3',
+                'RegisteredNode4'
             ],
             [node.get_id() for node in analysis.get_sorted_nodes()]
         )
@@ -153,9 +153,9 @@ class GraphAnalyzerTestCase(TestCase):
     def test_topological_sort_with_cycles(self):
         graph = Graph()
 
-        serviceNode1 = ServiceNode('ServiceNode1', ['ServiceNode3'])
-        serviceNode2 = ServiceNode('ServiceNode2', ['ServiceNode1'])
-        serviceNode3 = ServiceNode('ServiceNode3', ['ServiceNode2'])
+        serviceNode1 = RegisteredNode('RegisteredNode1', ['RegisteredNode3'])
+        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
+        serviceNode3 = RegisteredNode('RegisteredNode3', ['RegisteredNode2'])
 
         graph.add_node(serviceNode1)
         graph.add_node(serviceNode2)
@@ -166,16 +166,9 @@ class GraphAnalyzerTestCase(TestCase):
         self.assertEqual([], analysis.get_unregistered_nodes())
         self.assertEqual(  # FIXME, order is irrelevant here.
             [
-                'ServiceNode3',
-                'ServiceNode1',
-                'ServiceNode2',
+                'RegisteredNode3',
+                'RegisteredNode1',
+                'RegisteredNode2',
             ],
             [node.get_id() for node in analysis.get_circular_dependencies()]
         )
-
-#       self.assertEqual(s1, s1_retrieved_twice)
-
-#       with self.assertRaises(Exception):
-#           container.get('not_a_real_id')
-
-#       self.assertTrue(isinstance(fixture_service))
