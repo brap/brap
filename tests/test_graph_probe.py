@@ -135,3 +135,5 @@ class ContainerTestCase(TestCase):
                 )
         #  TODO
 
+
+# TODO also test on method injection
