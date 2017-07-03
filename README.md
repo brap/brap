@@ -153,3 +153,4 @@ Now in some other code base you can load all that configuration up:
 
 ## TODO
 Document how adding a function works, because it doesn't get memoized
+Document how injection via method calls works
