@@ -1,5 +1,6 @@
-from brap.graph import Graph, RegisteredNode
+import itertools
 
+from brap.graph import Graph, RegisteredNode
 
 class Container(object):
     """
@@ -56,7 +57,8 @@ class Container(object):
         def other_value():
             return value
 
-        edges = constructor_dependencies + [dep[1] for dep in  method_dependencies]
+        method_edges = [dep[1] for dep in  method_dependencies]
+        edges = constructor_dependencies + list(itertools.chain(*method_edges))
 
         # check if value is class
         if isinstance(value, type):

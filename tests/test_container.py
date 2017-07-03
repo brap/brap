@@ -10,6 +10,10 @@ class FixtureService(object):
     """
     def __init__(self, value):
         self.value = value
+        self.other_value = None
+
+    def set_other_value(self, other_value):
+        self.other_value = other_value
 
 
 class FactoryFixture(object):
@@ -94,7 +98,21 @@ class ContainerTestCase(TestCase):
         self.assertNotEqual(fac1, fac2)
 
     def test_set_and_get_by_id_for_class_with_method_calls(self):
-        pass  # TODO method application
+        container = Container()
+
+        # I mix short and long form names to test against the key/value being confused internally
+        container.set('const_param', 'constructor_param')
+        container.set('meth_param', 'method_param')
+        container.set('fixture_service',
+            FixtureService,
+            ['const_param'],
+            [
+                ('set_other_value', ['meth_param'])
+            ]
+        )
+        fixture_service = container.get('fixture_service')
+        self.assertEqual(fixture_service.value, 'constructor_param')
+        self.assertEqual(fixture_service.other_value, 'method_param')
 
     def test_register_provider(self):
         class FixtureProvider(ProviderInterface):
