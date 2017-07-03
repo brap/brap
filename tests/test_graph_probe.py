@@ -19,9 +19,9 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService('parent')
-        )
+                'parent',
+                FixtureService
+                )
         #  TODO
 
     def test_node_with_one_child(self):
@@ -32,13 +32,14 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService(c.get('child'))
-        )
+                'parent',
+                FixtureService,
+                ['child']
+                )
         container.set(
-            'child',
-            lambda c: FixtureService('child')
-        )
+                'child',
+                FixtureService
+                )
         #  TODO
 
     def test_node_with_two_children(self):
@@ -50,23 +51,19 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService(c.get('child-1'), c.get('child-2'))
-        )
+                'parent',
+                FixtureService,
+                ['child-1', 'child-2']
+                )
         container.set(
-            'child-1',
-            lambda c: FixtureService('child-1')
-        )
+                'child-1',
+                FixtureService,
+                )
         container.set(
-            'child-2',
-            lambda c: FixtureService('child-2')
-        )
+                'child-2',
+                FixtureService,
+                )
         #  TODO
-
-        container.set('param', 'Some param')
-        param = container.get('param')
-
-        self.assertEqual('Some param', param)
 
     def test_node_with_two_children_each_with_two_children(self):
         """
@@ -81,25 +78,21 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService(c.get('child-1'), c.get('child-2'))
-        )
+                'parent',
+                FixtureService,
+                ['child-1', 'child-2']
+                )
         container.set(
-            'child-1-1',
-            lambda c: FixtureService(c.get('child-1-2')
-        )
+                'child-1',
+                FixtureService,
+                ['child-1-2']  # The graph is aware of an UnregisteredNode
+                )
         container.set(
-            'child-2-1',
-            lambda c: FixtureService(c.get('child-2-2')
-        )
-        container.set(
-            'child-1-2',
-            lambda c: FixtureService('child-1-2')
-        )
-        container.set(
-            'child-2-2',
-            lambda c: FixtureService('child-2-2')
-        )
+                'child-2',
+                FixtureService,
+                ['child-2-2']
+                )
+
         #  TODO
 
     def test_node_which_depends_on_self(self):
@@ -113,9 +106,10 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService(c.get('parent'))
-        )
+                'parent',
+                FixtureService,
+                ['parent']
+                )
         #  TODO
 
     def test_with_child_which_depends_on_parent(self):
@@ -126,16 +120,18 @@ class ContainerTestCase(TestCase):
                 └── parent
                     └── child
                         └── parent
-                           ....
+                        ....
         """
         container = Container()
         container.set(
-            'parent',
-            lambda c: FixtureService(c.get('child'))
-        )
+                'parent',
+                FixtureService,
+                ['child']
+                )
         container.set(
-            'child',
-            lambda c: FixtureService(c.get('parent'))
-        )
+                'child',
+                FixtureService,
+                ['parent']
+                )
         #  TODO
 
