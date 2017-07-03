@@ -55,14 +55,19 @@ class UnregisteredNode(Node):
     """
     Registers edges that were mentioned but not directly registered
     """
-    pass
+    def get_value():
+        raise Exception('Unregistered node "{}" called by Brap Container. Unregistered nodes never have values.'.format(self._id))
 
-
-class ServiceNode(Node):  # TODO think about renaming to RegisteredNode
+class RegisteredNode(Node):  # TODO think about renaming to RegisteredNode
     """
     Registers nodes that were deliberate
     """
-    pass
+    def __init__(self, node_id, edges=[], value):
+        super().__init__(self, node_id, edges=[])
+        self._value = value
+
+    def get_value():
+        return self._value
 
 
 class NodeVisitorDecorator(object):
