@@ -1,4 +1,5 @@
 from unittest import TestCase
+import uuid  # Used to ensure multiple results are different
 
 from brap.container import Container, ProviderInterface
 
@@ -41,8 +42,16 @@ class ContainerTestCase(TestCase):
         self.assertEqual('Some param', param)
 
     def test_set_and_get_by_id_for_class(self):
-        pass  # TODO functions
-        pass  # TODO method application
+        container = Container()
+
+        def test_fn():
+            return uuid.uuid4()
+
+        container.set('fn', test_fn)
+        call1 = container.get('fn')
+        call2 = container.get('fn')
+
+        self.assertNotEqual(call1, call2)
 
     def test_two_containers_do_not_share_services(self):
         container1 = Container()
@@ -83,6 +92,9 @@ class ContainerTestCase(TestCase):
         fac2 = container.get('factory')
 
         self.assertNotEqual(fac1, fac2)
+
+    def test_set_and_get_by_id_for_class_with_method_calls(self):
+        pass  # TODO method application
 
     def test_register_provider(self):
         class FixtureProvider(ProviderInterface):
