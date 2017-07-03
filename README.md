@@ -149,3 +149,7 @@ Now in some other code base you can load all that configuration up:
     container.register(ERBTemplateEngineProvider())
     rendered_template = container.get('template_engine').render('template.erb', {})
 ```
+
+
+## TODO
+Document how adding a function works, because it doesn't get memoized

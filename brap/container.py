@@ -13,7 +13,7 @@ class Container(object):
         Instantiate the container.
         """
         self._graph = Graph()  # Graph enforces most business rules
-        self._memoized={}  # For values that should not be re-instantiated
+        self._memoized={}  # For values that are services
 
     def get(self, id):
         """
@@ -47,12 +47,10 @@ class Container(object):
             return instance
 
         def fn_value():
-            if id in self._memoized:
-                return self._memoized[id]
-
             result = value(*constructor_dependencies)
 
-            self._memoized[id] = result
+            # TODO Decide if calling set with method_dependencies is an exception
+
             return result
 
         def other_value():
@@ -70,7 +68,7 @@ class Container(object):
             self._graph.add_node(RegisteredNode(id, edges, fn_value))
             return self
 
-        # value is something else
+        # when value is something else
         self._graph.add_node(RegisteredNode(id, edges, other_value))
         return self
 
