@@ -42,6 +42,7 @@ class ContainerTestCase(TestCase):
 
     def test_set_and_get_by_id_for_class(self):
         pass  # TODO functions
+        pass  # TODO method application
 
     def test_two_containers_do_not_share_services(self):
         container1 = Container()
