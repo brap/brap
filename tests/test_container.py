@@ -84,17 +84,18 @@ class ContainerTestCase(TestCase):
 
         self.assertNotEqual(fac1, fac2)
 
-#   def test_register_provider(self):
-#       class FixtureProvider(ProviderInterface):
-#           def register(self, c):
-#               container.set(
-#                   'fixture_provided_service',
-#                   lambda container: FixtureService(c.get('param'))
-#               )
+    def test_register_provider(self):
+        class FixtureProvider(ProviderInterface):
+            def register(self, container):
+                container.set(
+                    'fixture_provided_service',
+                    FixtureService,
+                    ['param']
+                )
 
-#       container = Container()
-#       container.register(FixtureProvider())  # Intentionally defined before fixture_param.
-#       container.set('param', 'fixture_param')  # Intentionally defined after registering provider to ensure lazy loading.
-#       provided = container.get('fixture_provided_service')
+        container = Container()
+        container.registerProvider(FixtureProvider())  # Intentionally defined before fixture_param.
+        container.set('param', 'fixture_param')  # Intentionally defined after registering provider to ensure lazy loading.
+        provided = container.get('fixture_provided_service')
 
-#       self.assertEqual('fixture_param', provided.value)
+        self.assertEqual('fixture_param', provided.value)
