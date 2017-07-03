@@ -27,7 +27,8 @@ class ContainerTestCase(TestCase):
 
     def test_set_and_get_by_id_for_lambda(self):
         container = Container()
-        container.set('fixture_service', lambda container: FixtureService(1))
+        container.set('fixture_service_param', 1)
+        container.set('fixture_service', FixtureService, ['fixture_service_param'])
         fixture_service = container.get('fixture_service')
 
         self.assertTrue(isinstance(fixture_service, FixtureService))

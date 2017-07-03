@@ -11,10 +11,9 @@ class Container(object):
     def __init__(self):
         """
         Instantiate the container.
-        Objects and parameters can be passed as argument to the constructor.
-        value_map are initial parameters or objects
         """
-        self._graph = Graph()  # Graph to detect design flaws. Only mirrors structure, doesn't do anything useful.
+        self._graph = Graph()  # Graph enforces most business rules
+        self._memoized={}  # For values that should not be re-instantiated
 
     def get(self, id):
         """
@@ -33,17 +32,27 @@ class Container(object):
         However, this method does not create a factory.
         """
 
-        # FIXME does not preserve constructed value... perhaps use a memoize pattern
         def class_value():
-            instance = value(*constructor_dependencies)
+            if id in self._memoized:
+                return self._memoized[id]
+
+            container_constructor_deps = [self.get(id) for id in constructor_dependencies]
+            instance = value(*container_constructor_deps)
             for method_map in method_dependencies:
                 method = getattr(instance, method_map[0])
-                method(*method_map[1])
+                container_method_deps = [self.get(id) for id in method_map[1]]
+                method(*container_method_deps)
 
+            self._memoized[id] = instance
             return instance
 
         def fn_value():
+            if id in self._memoized:
+                return self._memoized[id]
+
             result = value(*constructor_dependencies)
+
+            self._memoized[id] = result
             return result
 
         def other_value():
@@ -78,7 +87,6 @@ class Container(object):
         # FIXME duplicate logic with set()
         edges = constructor_dependencies + [dep[1] for dep in  method_dependencies]
 
-        # FIXME does not preserve constructed value... And that should be fine here?
         def factory_class_value():
             instance = callable_service(*constructor_dependencies)
             for method_map in method_dependencies:
