@@ -51,15 +51,14 @@ at time of creation.
     )
 
     container.set(
-        'template_engine', 
+        'template_engine',
         TemplateEngine,
-        ['file_parser']  # Reference to service injected to TemplateEngine
+        lambda c: c('file_parser')  # Reference to service injected to TemplateEngine
     )
 ```
 
 If you are ready to use the template engine, use the same instance of container
 from above to get (the container is not global).
-
 
 
 ```python
@@ -73,6 +72,34 @@ from above to get (the container is not global).
     })
 ```
 
+If your service requires injection-via-method that can be done by adding a method calling list:
+
+```
+    class Foo(object):
+        def injectMethod(self, parser):
+
+    container.set(
+        'template_engine',
+        TemplateEngine,
+        lambda c: c()  # No constructor parameters in this example
+        [
+            ('injectMethod', lambda c: c('file_parser'))  # List method calls here
+        ]
+    )
+```
+
+If your service requires injection-via-kwarg simply specify it in your lambda:
+
+```
+    class Foo(object):
+        def __init__(self, some_kwarg):
+
+    container.set(
+        'template_engine',
+        TemplateEngine,
+        lambda c: c(some_kwarg='file_parser')  # Reference by kwarg in lambda
+    )
+```
 
 ## Defining Factory Services
 
@@ -108,8 +135,31 @@ This lets you do useful things such as:
     container.set(
         'database_connection',
         Database,
-        ['database_password']
+        lambda c: c('database_password')
     )
+```
+
+
+## Defining Functions As Services
+
+I advise against doing this as it isn't clear what the use is, but I suspect
+you may find a place to use them when doing something messy and absurd so I put
+them in here to permit you the liberty of shooting yourself in the foot should
+you so wish.
+
+```python
+    def some_function(x)
+        return x+1
+
+    container.set('x_value', 100)
+
+    container.factory(
+        'fn_ser',
+        some_function
+        lambda c: c('x_value')
+    )
+
+    container.get('fn_ser')  # Returns 101
 ```
 
 ## Extending a Container
@@ -130,13 +180,13 @@ may wish to define a simple provider interface:
             container.set(
                 'file_parser',  # no magic here, string can be anything
                 ERBFileParser,  # Class we're using
-                ['file_path_parameter']  # Services/parameters injected into constructor
+                lambda c: c('file_path_parameter')  # Services/parameters injected into constructor
             )
 
             container.set(
-                'template_engine', 
+                'template_engine',
                 TemplateEngine,
-                ['file_parser']
+                lambda c: c('file_parser')
             )
 ```
 
