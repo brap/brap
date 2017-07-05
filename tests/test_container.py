@@ -36,7 +36,7 @@ class ContainerTestCase(TestCase):
         container = Container()
         container.set('fixture_service_param', 1)
         container.set('fixture_service', FixtureService,
-                      ['fixture_service_param'])
+                lambda c: c('fixture_service_param'))
         fixture_service = container.get('fixture_service')
 
         self.assertTrue(isinstance(fixture_service, FixtureService))
@@ -68,8 +68,8 @@ class ContainerTestCase(TestCase):
         container2.set('fixture_service_param', 'container2')
 
         # Intentionally giving services same id
-        container1.set('ser1', FixtureService, ['fixture_service_param'])
-        container2.set('ser1', FixtureService, ['fixture_service_param'])
+        container1.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
+        container2.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
 
         s1 = container1.get('ser1')
         s2 = container2.get('ser1')
@@ -79,7 +79,7 @@ class ContainerTestCase(TestCase):
     def test_service_returns_same_object(self):
         container = Container()
         container.set('fixture_service_param', 'container1')
-        container.set('ser1', FixtureService, ['fixture_service_param'])
+        container.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
 
         s1 = container.get('ser1')
         s1_retrieved_twice = container.get('ser1')
@@ -108,9 +108,9 @@ class ContainerTestCase(TestCase):
         container.set('meth_param', 'method_param')
         container.set('fixture_service',
                       FixtureService,
-                      ['const_param'],
+                      lambda c: c('const_param'),
                       [
-                          ('set_other_value', ['meth_param'])
+                          ('set_other_value', lambda c: c('meth_param'))
                       ]
                       )
         fixture_service = container.get('fixture_service')
@@ -123,7 +123,7 @@ class ContainerTestCase(TestCase):
                 container.set(
                     'fixture_provided_service',
                     FixtureService,
-                    ['param']
+                    lambda c: c('param')
                 )
 
         container = Container()

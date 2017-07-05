@@ -35,7 +35,7 @@ class ContainerTestCase(TestCase):
         container.set(
             'parent',
             FixtureService,
-            ['child']
+            lambda c: c('child')
         )
         container.set(
             'child',
@@ -54,7 +54,7 @@ class ContainerTestCase(TestCase):
         container.set(
             'parent',
             FixtureService,
-            ['child-1', 'child-2']
+            lambda c: c('child-1', 'child-2')
         )
         container.set(
             'child-1',
@@ -81,17 +81,17 @@ class ContainerTestCase(TestCase):
         container.set(
             'parent',
             FixtureService,
-            ['child-1', 'child-2']
+            lambda c: c('child-1', 'child-2')
         )
         container.set(
             'child-1',
             FixtureService,
-            ['child-1-2']  # The graph is aware of an UnregisteredNode
+            lambda c: c('child-1-2')  # The graph is aware of an UnregisteredNode
         )
         container.set(
             'child-2',
             FixtureService,
-            ['child-2-2']
+            lambda c: c('child-2-2')
         )
 
         #  TODO
@@ -109,7 +109,7 @@ class ContainerTestCase(TestCase):
         container.set(
             'parent',
             FixtureService,
-            ['parent']
+            lambda c: c('parent')
         )
         #  TODO
 
@@ -127,12 +127,12 @@ class ContainerTestCase(TestCase):
         container.set(
             'parent',
             FixtureService,
-            ['child']
+            lambda c: c('child')
         )
         container.set(
             'child',
             FixtureService,
-            ['parent']
+            lambda c: c('parent')
         )
         #  TODO
 
