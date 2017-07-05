@@ -8,6 +8,7 @@ class FixtureService(object):
     """
     Only used to provide a sample for tests
     """
+
     def __init__(self, value):
         self.value = value
         self.other_value = None
@@ -20,6 +21,7 @@ class FactoryFixture(object):
     """
     Only used to provide a sample for tests
     """
+
     def __init__(self):
         pass
 
@@ -33,7 +35,17 @@ class ContainerTestCase(TestCase):
     def test_set_and_get_by_id_for_class(self):
         container = Container()
         container.set('fixture_service_param', 1)
-        container.set('fixture_service', FixtureService, ['fixture_service_param'])
+        container.set('fixture_service', FixtureService,
+                lambda c: c('fixture_service_param'))
+        fixture_service = container.get('fixture_service')
+
+        self.assertTrue(isinstance(fixture_service, FixtureService))
+
+    def test_set_and_get_by_id_with_kwarg_for_class(self):
+        container = Container()
+        container.set('fixture_service_param', 1)
+        container.set('fixture_service', FixtureService,
+                lambda c: c(value='fixture_service_param'))
         fixture_service = container.get('fixture_service')
 
         self.assertTrue(isinstance(fixture_service, FixtureService))
@@ -65,8 +77,8 @@ class ContainerTestCase(TestCase):
         container2.set('fixture_service_param', 'container2')
 
         # Intentionally giving services same id
-        container1.set('ser1', FixtureService, ['fixture_service_param'])
-        container2.set('ser1', FixtureService, ['fixture_service_param'])
+        container1.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
+        container2.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
 
         s1 = container1.get('ser1')
         s2 = container2.get('ser1')
@@ -76,7 +88,7 @@ class ContainerTestCase(TestCase):
     def test_service_returns_same_object(self):
         container = Container()
         container.set('fixture_service_param', 'container1')
-        container.set('ser1', FixtureService, ['fixture_service_param'])
+        container.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
 
         s1 = container.get('ser1')
         s1_retrieved_twice = container.get('ser1')
@@ -104,12 +116,29 @@ class ContainerTestCase(TestCase):
         container.set('const_param', 'constructor_param')
         container.set('meth_param', 'method_param')
         container.set('fixture_service',
-            FixtureService,
-            ['const_param'],
-            [
-                ('set_other_value', ['meth_param'])
-            ]
-        )
+                      FixtureService,
+                      lambda c: c('const_param'),
+                      [
+                          ('set_other_value', lambda c: c('meth_param'))
+                      ]
+                      )
+        fixture_service = container.get('fixture_service')
+        self.assertEqual(fixture_service.value, 'constructor_param')
+        self.assertEqual(fixture_service.other_value, 'method_param')
+
+    def test_set_and_get_by_id_for_class_with_method_calls_with_kwargs(self):
+        container = Container()
+
+        # I mix short and long form names to test against the key/value being confused internally
+        container.set('const_param', 'constructor_param')
+        container.set('meth_param', 'method_param')
+        container.set('fixture_service',
+                      FixtureService,
+                      lambda c: c('const_param'),
+                      [
+                          ('set_other_value', lambda c: c(other_value='meth_param'))
+                      ]
+                      )
         fixture_service = container.get('fixture_service')
         self.assertEqual(fixture_service.value, 'constructor_param')
         self.assertEqual(fixture_service.other_value, 'method_param')
@@ -120,12 +149,14 @@ class ContainerTestCase(TestCase):
                 container.set(
                     'fixture_provided_service',
                     FixtureService,
-                    ['param']
+                    lambda c: c('param')
                 )
 
         container = Container()
-        container.registerProvider(FixtureProvider())  # Intentionally defined before fixture_param.
-        container.set('param', 'fixture_param')  # Intentionally defined after registering provider to ensure lazy loading.
+        # Intentionally defined before fixture_param.
+        container.registerProvider(FixtureProvider())
+        # Intentionally defined after registering provider to ensure lazy loading.
+        container.set('param', 'fixture_param')
         provided = container.get('fixture_provided_service')
 
         self.assertEqual('fixture_param', provided.value)

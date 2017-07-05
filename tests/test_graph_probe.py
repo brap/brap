@@ -7,6 +7,7 @@ class FixtureService(object):
     """
     Only used to provide a sample for tests
     """
+
     def __init__(self, value):
         self.value = value
 
@@ -19,9 +20,9 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService
-                )
+            'parent',
+            FixtureService
+        )
         #  TODO
 
     def test_node_with_one_child(self):
@@ -32,14 +33,14 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService,
-                ['child']
-                )
+            'parent',
+            FixtureService,
+            lambda c: c('child')
+        )
         container.set(
-                'child',
-                FixtureService
-                )
+            'child',
+            FixtureService
+        )
         #  TODO
 
     def test_node_with_two_children(self):
@@ -51,18 +52,18 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService,
-                ['child-1', 'child-2']
-                )
+            'parent',
+            FixtureService,
+            lambda c: c('child-1', 'child-2')
+        )
         container.set(
-                'child-1',
-                FixtureService,
-                )
+            'child-1',
+            FixtureService,
+        )
         container.set(
-                'child-2',
-                FixtureService,
-                )
+            'child-2',
+            FixtureService,
+        )
         #  TODO
 
     def test_node_with_two_children_each_with_two_children(self):
@@ -78,20 +79,20 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService,
-                ['child-1', 'child-2']
-                )
+            'parent',
+            FixtureService,
+            lambda c: c('child-1', 'child-2')
+        )
         container.set(
-                'child-1',
-                FixtureService,
-                ['child-1-2']  # The graph is aware of an UnregisteredNode
-                )
+            'child-1',
+            FixtureService,
+            lambda c: c('child-1-2')  # The graph is aware of an UnregisteredNode
+        )
         container.set(
-                'child-2',
-                FixtureService,
-                ['child-2-2']
-                )
+            'child-2',
+            FixtureService,
+            lambda c: c('child-2-2')
+        )
 
         #  TODO
 
@@ -106,10 +107,10 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService,
-                ['parent']
-                )
+            'parent',
+            FixtureService,
+            lambda c: c('parent')
+        )
         #  TODO
 
     def test_with_child_which_depends_on_parent(self):
@@ -124,15 +125,15 @@ class ContainerTestCase(TestCase):
         """
         container = Container()
         container.set(
-                'parent',
-                FixtureService,
-                ['child']
-                )
+            'parent',
+            FixtureService,
+            lambda c: c('child')
+        )
         container.set(
-                'child',
-                FixtureService,
-                ['parent']
-                )
+            'child',
+            FixtureService,
+            lambda c: c('parent')
+        )
         #  TODO
 
 

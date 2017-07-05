@@ -2,6 +2,7 @@ class Graph(object):
     """
     Perhaps I could make Brap2 use Brap1 to avoid this hard dependency?
     """
+
     def __init__(self):
         self._nodeMap = {}
 
@@ -10,17 +11,20 @@ class Graph(object):
 
     def add_node(self, node):
         if not isinstance(node, Node):
-            raise ValueError('Provided object {} is not a Node'.format(node.__class__.__name__))  # Fixme more specific exception type
+            raise ValueError('Provided object {} is not a Node'.format(
+                node.__class__.__name__))  # Fixme more specific exception type
 
         # Only add new nodes. Only replace UnregisteredNode
         if node.get_id() in self._nodeMap:
             if not isinstance(self._nodeMap[node.get_id()], UnregisteredNode):
-                raise ValueError('Identifier "{}" is already in graph.'.format(node.get_id()))
+                raise ValueError(
+                    'Identifier "{}" is already in graph.'.format(node.get_id()))
 
         # Register undefined edges
         for edge_node_id in node.get_edges():
             if edge_node_id not in self._nodeMap:
-                unregistered_node = self._create_unregistered_edge_node(edge_node_id)
+                unregistered_node = self._create_unregistered_edge_node(
+                    edge_node_id)
                 self.add_node(unregistered_node)
 
         # Put node in map
@@ -32,7 +36,8 @@ class Graph(object):
     def get_nodes(self):
         return self._nodeMap
 
-    def get_dependency_lists(self):  # FIXME I may only have this for the sake of testing. TBD.
+    # FIXME I may only have this for the sake of testing. TBD.
+    def get_dependency_lists(self):
         return [(node_id, self.get_node_by_id(node_id).get_edges()) for node_id in self._nodeMap]
 
 
@@ -40,6 +45,7 @@ class Node(object):
     """
     Abstract base node
     """
+
     def __init__(self, node_id, edges=[]):
         self._id = node_id
         self._edges = edges
@@ -55,13 +61,17 @@ class UnregisteredNode(Node):
     """
     Registers edges that were mentioned but not directly registered
     """
+
     def get_value(self):
-        raise Exception('Unregistered node "{}" called by Brap Container. Unregistered nodes never have values.'.format(self._id))
+        raise Exception(
+            'Unregistered node "{}" called by Brap Container. Unregistered nodes never have values.'.format(self._id))
+
 
 class RegisteredNode(Node):  # TODO think about renaming to RegisteredNode
     """
     Registers nodes that were deliberate
     """
+
     def __init__(self, node_id, edges=[], value=None):
         super().__init__(node_id, edges)
         self._value = value
@@ -94,7 +104,7 @@ class NodeVisitorDecorator(object):
 
 class GraphAnalyzer():
     def __init__(self, graph):
-        self._graph = graph;
+        self._graph = graph
 
         self._circular_dependencies = []
         self._sorted_nodes = []
@@ -149,6 +159,8 @@ class GraphAnalyzer():
                 if edge.get_weight() == 0:
                     resolved.append(edge)
 
-        self._circular_dependencies = [node.get_node() for node in nodes if node.get_weight() > 0]
+        self._circular_dependencies = [
+            node.get_node() for node in nodes if node.get_weight() > 0]
 
-        self._sorted_nodes = reversed([node.get_node() for node in sorted_graph])
+        self._sorted_nodes = reversed(
+            [node.get_node() for node in sorted_graph])
