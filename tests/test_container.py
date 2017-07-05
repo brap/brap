@@ -41,6 +41,15 @@ class ContainerTestCase(TestCase):
 
         self.assertTrue(isinstance(fixture_service, FixtureService))
 
+    def test_set_and_get_by_id_with_kwarg_for_class(self):
+        container = Container()
+        container.set('fixture_service_param', 1)
+        container.set('fixture_service', FixtureService,
+                lambda c: c(value='fixture_service_param'))
+        fixture_service = container.get('fixture_service')
+
+        self.assertTrue(isinstance(fixture_service, FixtureService))
+
     def test_set_and_get_by_id_for_strings(self):
         container = Container()
         container.set('param', 'Some param')
@@ -111,6 +120,23 @@ class ContainerTestCase(TestCase):
                       lambda c: c('const_param'),
                       [
                           ('set_other_value', lambda c: c('meth_param'))
+                      ]
+                      )
+        fixture_service = container.get('fixture_service')
+        self.assertEqual(fixture_service.value, 'constructor_param')
+        self.assertEqual(fixture_service.other_value, 'method_param')
+
+    def test_set_and_get_by_id_for_class_with_method_calls_with_kwargs(self):
+        container = Container()
+
+        # I mix short and long form names to test against the key/value being confused internally
+        container.set('const_param', 'constructor_param')
+        container.set('meth_param', 'method_param')
+        container.set('fixture_service',
+                      FixtureService,
+                      lambda c: c('const_param'),
+                      [
+                          ('set_other_value', lambda c: c(other_value='meth_param'))
                       ]
                       )
         fixture_service = container.get('fixture_service')
