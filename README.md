@@ -6,6 +6,18 @@ Brap is a dependency injection container for Python3.
 [![Build Status](https://travis-ci.org/Incognito/brap.svg?branch=master)](https://travis-ci.org/Incognito/brap)
 
 
+## Features!
+
+* All the usual reasons you want to use DI
+* Detect circular dependencies
+* Detect missing dependencies
+* ProviderInterface promotes simple ecosystem interoperability
+* Inject via constructor
+* Inject via method calls
+* Define parameters into the container (Useful for a filesystem path or similar ideas)
+* Factories, for when you don't want the same instance
+* You get a reason to say "brap" in real life
+
 ## Usage
 
 Create a container
