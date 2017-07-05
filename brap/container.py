@@ -1,6 +1,24 @@
 import itertools
+from functools import partial
 
 from brap.graph import Graph, RegisteredNode
+
+
+def extract_edges_from_callable(*args, *kwargs):
+    """
+    This takes args and kwargs provided, and returns the names of the strings
+    assigned. If a string is not provided for a value, an exception is raised.
+
+    This is how we extract the edges provided in the brap call lambdas.
+    """
+    edges = list(args) + list(kwargs)
+
+    for edge in edges:
+        if not isinstance(edge, str):
+            raise ValueError('Provided edge "{}" is not a string'.format(edge))
+
+    return edges
+
 
 class Container(object):
     """
