@@ -60,8 +60,7 @@ class Container(object):
             instance = value(*container_constructor_deps)
             for method_map in method_dependencies:
                 method = getattr(instance, method_map[0])
-                container_method_deps = [
-                    self.get(id) for id in extract_edges_from_callable(method_map[1])]
+                container_method_deps = [self.get(id) for id in extract_edges_from_callable(method_map[1])]
                 method(*container_method_deps)
 
             self._memoized[id] = instance
@@ -77,10 +76,8 @@ class Container(object):
         def other_value():
             return value
 
-        method_edges = [extract_edges_from_callable(
-            dep[1]) for dep in method_dependencies]
-        edges = extract_edges_from_callable(
-            constructor_dependencies) + list(itertools.chain(*method_edges))
+        method_edges = [extract_edges_from_callable(dep[1]) for dep in method_dependencies]
+        edges = extract_edges_from_callable(constructor_dependencies) + list(itertools.chain(*method_edges))
 
         # check if value is class
         if isinstance(value, type):
