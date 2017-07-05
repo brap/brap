@@ -174,7 +174,7 @@ you so wish.
     container.get('fn_ser')  # Returns 101
 ```
 
-## Extending a Container
+## Providing Configuration to a Container
 
 One of the big advantages of picking a DI container is the reusability of a set
 of services.
