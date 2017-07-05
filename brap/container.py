@@ -11,30 +11,55 @@ def extract_edges_from_callable(fn):
 
     This is how we extract the edges provided in the brap call lambdas.
     """
+
     def extractor(*args, **kwargs):
+        """
+        Because I don't think this technique is common in python...
+
+        Service constructors were defined as:
+            lambda c: c('a')
+
+        In this function:
+            fn = lambda c: c('a')
+            fn(anything)  # Results in anything('a')
+
+        Here we provide a function which returns all args/kwargs
+            fn(extractor)  # ["a"]
+
+        This isn't voodoo, it's just treating a function's call if it is data.
+        """
         return list(args) + list(kwargs)
 
-    """
-    Because I don't this technique is not common in python...
-
-    Service constructors were defined as:
-        lambda c: c('a')
-    In this function: 
-        fn = lambda c: c('a')
-        fn(anything)  # Results in anything('a')
-
-    Here we provide a function which returns all args/kwargs
-        fn(extractor)  # ["a"]
-
-    This isn't voodoo, it's just treating a function's call if it is data.
-    """
-    edges = fn(extractor) 
+    edges = fn(extractor)
 
     for edge in edges:
         if not isinstance(edge, str):
             raise ValueError('Provided edge "{}" is not a string'.format(edge))
 
     return edges
+
+def hydrate_callable_with_container(container, callable_function, parameter_lambda):
+    """
+    args and kwargs intentionally not *args and **kwargs
+    """
+
+    def extract_kwargs_dict(*args, **kwargs):
+        return kwargs
+
+    def extract_args_list(*args, **kwargs):
+        return list(args)
+
+    args = parameter_lambda(extract_args_list)
+    kwargs = parameter_lambda(extract_kwargs_dict)
+
+    arg_list = [container.get(id) for id in list(args)]
+
+    kwarg_map = {}
+
+    for kwarg in kwargs:
+        kwarg_map[kwarg] = container.get(kwargs[kwarg])
+
+    return callable_function(*arg_list, **kwarg_map)
 
 
 class Container(object):
@@ -72,12 +97,10 @@ class Container(object):
             if id in self._memoized:
                 return self._memoized[id]
 
-            container_constructor_deps = [self.get(id) for id in extract_edges_from_callable(constructor_dependencies)]
-            instance = value(*container_constructor_deps)
+            instance = hydrate_callable_with_container(self, value, constructor_dependencies)
             for method_map in method_dependencies:
                 method = getattr(instance, method_map[0])
-                container_method_deps = [self.get(id) for id in extract_edges_from_callable(method_map[1])]
-                method(*container_method_deps)
+                hydrate_callable_with_container(self, method, method_map[1])
 
             self._memoized[id] = instance
             return instance
@@ -127,12 +150,10 @@ class Container(object):
         edges = extract_edges_from_callable(constructor_dependencies) + list(itertools.chain(*method_edges))
 
         def factory_class_value():
-            container_constructor_deps = [self.get(id) for id in extract_edges_from_callable(constructor_dependencies)]
-            instance = callable_factory(*container_constructor_deps)
+            instance = hydrate_callable_with_container(self, callable_factory, constructor_dependencies)
             for method_map in method_dependencies:
                 method = getattr(instance, method_map[0])
-                container_method_deps = [self.get(id) for id in extract_edges_from_callable(method_map[1])]
-                method(*container_method_deps)
+                hydrate_callable_with_container(self, method, method_map[1])
             return instance
 
         self._graph.add_node(RegisteredNode(id, edges, factory_class_value))
