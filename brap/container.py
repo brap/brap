@@ -16,16 +16,17 @@ class Container(object):
     Stores parameters and callables
     """
 
-    def __init__(self):
+    def __init__(self, graph = Graph()):
         """
         Instantiate the container.
         """
-        self._graph = Graph()  # Graph enforces most business rules
+        self._graph = graph
 
     def get(self, id):
         """
         Gets a parameter or the closure defining an object.
         """
+        # fixme give graph a method to find value by ID
         return self._graph.get_node_by_id(id).get_value()
 
     def set(self, id, value, constructor_dependencies=lambda c: c(), method_dependencies=[]):
@@ -64,6 +65,7 @@ class Container(object):
         if not isinstance(callable_factory, type):
             raise Exception('FIXME better exception')
 
+        # FIXME this is totally broken, how do I want to get a new instance?`
         registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
         self._graph.register(registration)
         return self

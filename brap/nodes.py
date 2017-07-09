@@ -25,7 +25,7 @@ class RegisteredNode(Node):
 
     def get_value(self):
         raise Exception(
-            'Registered node "{}" was requested without being compiled.'.format(self._id))
+            'Registered node "{}" was requested without being compiled.'.format(self.get_id()))
 
     def get_edges(self):
         return self._registration.get_edges()

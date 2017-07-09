@@ -16,3 +16,14 @@ class FixtureService(object):
 
     def method1(self, value):
         self.method2_value = value
+
+
+class FactoryFixture(object):
+    """
+    Only used to provide a sample for tests
+    """
+
+    def __init__(self):
+        pass
+
+
