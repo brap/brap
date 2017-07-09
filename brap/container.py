@@ -74,7 +74,7 @@ class Container(object):
         Instantiate the container.
         """
         self._graph = Graph()  # Graph enforces most business rules
-        self._memoized = {}  # For values that are services
+        self._instances = {}  # For values that are services
 
     def get(self, id):
         """
@@ -94,15 +94,15 @@ class Container(object):
         """
 
         def class_value():
-            if id in self._memoized:
-                return self._memoized[id]
+            if id in self._instances:
+                return self._instances[id]
 
             instance = hydrate_callable_with_container(self, value, constructor_dependencies)
             for method_map in method_dependencies:
                 method = getattr(instance, method_map[0])
                 hydrate_callable_with_container(self, method, method_map[1])
 
-            self._memoized[id] = instance
+            self._instances[id] = instance
             return instance
 
         def fn_value():
