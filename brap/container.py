@@ -1,65 +1,12 @@
-import itertools
 from functools import partial
 
-from brap.graph import Graph, RegisteredNode
+from brap.graph import Graph
 
-
-def extract_edges_from_callable(fn):
-    """
-    This takes args and kwargs provided, and returns the names of the strings
-    assigned. If a string is not provided for a value, an exception is raised.
-
-    This is how we extract the edges provided in the brap call lambdas.
-    """
-
-    def extractor(*args, **kwargs):
-        """
-        Because I don't think this technique is common in python...
-
-        Service constructors were defined as:
-            lambda c: c('a')
-
-        In this function:
-            fn = lambda c: c('a')
-            fn(anything)  # Results in anything('a')
-
-        Here we provide a function which returns all args/kwargs
-            fn(extractor)  # ["a"]
-
-        This isn't voodoo, it's just treating a function's call if it is data.
-        """
-        return list(args) + list(kwargs)
-
-    edges = fn(extractor)
-
-    for edge in edges:
-        if not isinstance(edge, str):
-            raise ValueError('Provided edge "{}" is not a string'.format(edge))
-
-    return edges
-
-def hydrate_callable_with_container(container, callable_function, parameter_lambda):
-    """
-    args and kwargs intentionally not *args and **kwargs
-    """
-
-    def extract_kwargs_dict(*args, **kwargs):
-        return kwargs
-
-    def extract_args_list(*args, **kwargs):
-        return list(args)
-
-    args = parameter_lambda(extract_args_list)
-    kwargs = parameter_lambda(extract_kwargs_dict)
-
-    arg_list = [container.get(id) for id in list(args)]
-
-    kwarg_map = {}
-
-    for kwarg in kwargs:
-        kwarg_map[kwarg] = container.get(kwargs[kwarg])
-
-    return callable_function(*arg_list, **kwarg_map)
+from brap.node_registrations import (
+    FunctionRegistration,
+    ClassRegistration,
+    ParameterRegistration,
+)
 
 
 class Container(object):
@@ -74,7 +21,6 @@ class Container(object):
         Instantiate the container.
         """
         self._graph = Graph()  # Graph enforces most business rules
-        self._instances = {}  # For values that are services
 
     def get(self, id):
         """
@@ -93,48 +39,21 @@ class Container(object):
         However, this method does not create a factory.
         """
 
-        def class_value():
-            if id in self._instances:
-                return self._instances[id]
-
-            instance = hydrate_callable_with_container(self, value, constructor_dependencies)
-            for method_map in method_dependencies:
-                method = getattr(instance, method_map[0])
-                hydrate_callable_with_container(self, method, method_map[1])
-
-            self._instances[id] = instance
-            return instance
-
-        def fn_value():
-            container_constructor_deps = [
-                self.get(id) for id in extract_edges_from_callable(constructor_dependencies)]
-            result = value(*container_constructor_deps)
-
-            return result
-
-        def non_callable_value():
-            return value
-
         # check if value is class
         if isinstance(value, type):
-            method_edges = [extract_edges_from_callable(dep[1]) for dep in method_dependencies]
-            edges = extract_edges_from_callable(constructor_dependencies) + list(itertools.chain(*method_edges))
-
-            self._graph.add_node(RegisteredNode(id, edges, class_value))
-
+            registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
+            self._graph.add_node(registration)
             return self
 
         # check if value is function
         if callable(value):
-            edges = extract_edges_from_callable(constructor_dependencies)
-
-            self._graph.add_node(RegisteredNode(id, edges, fn_value))
-
+            registration = FunctionRegistration(id, value, constructor_dependencies)
+            self._graph.add_node(registration)
             return self
 
         # when value is something else
-        edges = []
-        self._graph.add_node(RegisteredNode(id, edges, non_callable_value))
+        registration = ParameterRegistration(id, value)
+        self._graph.add_node(registration)
         return self
 
     def factory(self, id, callable_factory, constructor_dependencies=lambda c: c(), method_dependencies=[]):
@@ -145,32 +64,6 @@ class Container(object):
         if not isinstance(callable_factory, type):
             raise Exception('FIXME better exception')
 
-        # FIXME duplicate logic with set()
-        method_edges = [extract_edges_from_callable(dep[1]) for dep in method_dependencies]
-        edges = extract_edges_from_callable(constructor_dependencies) + list(itertools.chain(*method_edges))
-
-        def factory_class_value():
-            instance = hydrate_callable_with_container(self, callable_factory, constructor_dependencies)
-            for method_map in method_dependencies:
-                method = getattr(instance, method_map[0])
-                hydrate_callable_with_container(self, method, method_map[1])
-            return instance
-
-        self._graph.add_node(RegisteredNode(id, edges, factory_class_value))
+        registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
+        self._graph.add_node(registration)
         return self
-
-    def registerProvider(self, provider):
-        """
-        Registers a service provider.
-        """
-        if not isinstance(provider, ProviderInterface):
-            raise ValueError('Provider must extend ProviderInterface')
-
-        provider.register(self)
-
-        return self
-
-
-class ProviderInterface(object):
-    def register(self, container):
-        raise NotImplementedError('Providers must have a register method')
