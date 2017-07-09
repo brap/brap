@@ -16,7 +16,7 @@ class Container(object):
     Stores parameters and callables
     """
 
-    def __init__(self, graph = Graph()):
+    def __init__(self, graph=Graph()):
         """
         Instantiate the container.
         """
@@ -31,30 +31,38 @@ class Container(object):
 
     def merge(self, subordinate_container):
         if not isinstance(subordinate_container, Container):
-            raise Exception("Container is expected to only merge with a Container.")
+            raise Exception(
+                "Container is expected to only merge with a Container.")
 
         self._graph.merge(subordinate_container._graph)
 
-    def set(self, id, value, constructor_dependencies=lambda c: c(), method_dependencies=[]):
+    def set(self,
+            id,
+            value,
+            constructor_dependencies=lambda c: c(),
+            method_dependencies=[]):
         """
         Sets a parameter or service by id
 
         Values are lazy constructed by being baked into functions.
         These functions are how the various features are created, including:
-        service(factory), service(class), service(function), factory, parameters
+        service(factory), service(class), service(function), factory,
+        parameters
 
         However, this method does not create a factory.
         """
 
         # check if value is class
         if isinstance(value, type):
-            registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
+            registration = ClassRegistration(
+                id, value, constructor_dependencies, method_dependencies)
             self._graph.register(registration)
             return self
 
         # check if value is function
         if callable(value):
-            registration = FunctionRegistration(id, value, constructor_dependencies)
+            registration = FunctionRegistration(
+                id, value, constructor_dependencies)
             self._graph.register(registration)
             return self
 
@@ -63,7 +71,12 @@ class Container(object):
         self._graph.register(registration)
         return self
 
-    def factory(self, id, callable_factory, constructor_dependencies=lambda c: c(), method_dependencies=[]):
+    def factory(
+            self,
+            id,
+            callable_factory,
+            constructor_dependencies=lambda c: c(),
+            method_dependencies=[]):
         """
         Marks a callable as being a factory service.
         """
@@ -72,6 +85,7 @@ class Container(object):
             raise Exception('FIXME better exception')
 
         # FIXME this is totally broken, how do I want to get a new instance?`
-        registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
+        registration = ClassRegistration(
+            id, value, constructor_dependencies, method_dependencies)
         self._graph.register(registration)
         return self

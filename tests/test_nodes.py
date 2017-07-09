@@ -5,6 +5,7 @@ from tests.fixtures import FixtureService
 from brap.nodes import RegisteredNode
 from brap.node_registrations import ParameterRegistration
 
+
 class NodesTestCase(TestCase):
     def test_create_service_node_with_registration(self):
         reg = ParameterRegistration(

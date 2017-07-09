@@ -1,6 +1,7 @@
 from brap.nodes import RegisteredNode, UnregisteredNode
 from brap.node_registrations import Registration
 
+
 class Graph(object):
     def __init__(self):
         self._nodeMap = {}
@@ -34,7 +35,11 @@ class Graph(object):
         is_added = self._add_node(registered_node)
 
         if not is_added:
-            raise ValueError('Cannot register a node named "{}" which has already been registered'.format(registered_node.get_id()))
+            raise ValueError(
+                'Node "{}" has already been registered'.format(
+                    registered_node.get_id()
+                )
+            )
 
     def get_node_by_id(self, node_id):
         return self._nodeMap[node_id]

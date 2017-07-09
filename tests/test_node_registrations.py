@@ -9,36 +9,38 @@ from brap.node_registrations import (
     extract_edges_from_callable
 )
 
-function_reference = lambda: None
+
+def function_reference(): return None
+
 
 class Extract_Edges_From_CallableTestCase(TestCase):
     def test_extract_edges_from_callable(self):
-        callable = lambda c: c('a', 'b', kwarg_c='c', kwarg_d='d')
+        def callable(c): return c('a', 'b', kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
         self.assertEqual(['a', 'b', 'c', 'd'], edges)
 
     def test_extract_args_from_callable(self):
-        callable = lambda c: c('a', 'b')
+        def callable(c): return c('a', 'b')
         edges = extract_edges_from_callable(callable)
         self.assertEqual(['a', 'b'], edges)
 
     def test_extract_kwargs_from_callable(self):
-        callable = lambda c: c(kwarg_c='c', kwarg_d='d')
+        def callable(c): return c(kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
         self.assertEqual(['c', 'd'], edges)
 
     def test_extract_without_strings_is_exception(self):
-        callable = lambda c: c('a', 'b', kwarg_c='c', kwarg_d='d')
+        def callable(c): return c('a', 'b', kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
         self.assertEqual(['a', 'b', 'c', 'd'], edges)
 
     def test_extract_without_strings_is_exception(self):
-        callable = lambda c: c(1)
+        def callable(c): return c(1)
         with self.assertRaises(ValueError):  # TODO more specific exception
             edges = extract_edges_from_callable(callable)
 
     def test_extract_without_strings_no_params(self):
-        callable = lambda c: c()
+        def callable(c): return c()
         edges = extract_edges_from_callable(callable)
         self.assertEqual([], edges)
 
@@ -121,15 +123,15 @@ class ClassRegistrationTestCase(TestCase):
             FixtureService,
             lambda c: c('arg1', kwarg1='keywordarg1'),
             [
-                ('method1', lambda c: c('method1arg1', kwarg1='method1keywordarg1')),
-                ('method2', lambda c: c('method2arg1', kwarg1='method2keywordarg1'))
+                ('method1', lambda c: c('meth1arg1', kwarg1='meth1kwarg1')),
+                ('method2', lambda c: c('meth2arg1', kwarg1='meth2kwarg1'))
             ]
         )
         self.assertEqual([
             'arg1',
             'keywordarg1',
-            'method1arg1',
-            'method1keywordarg1',
-            'method2arg1',
-            'method2keywordarg1'
+            'meth1arg1',
+            'meth1kwarg1',
+            'meth2arg1',
+            'meth2kwarg1'
         ], reg.get_edges())

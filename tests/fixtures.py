@@ -25,5 +25,3 @@ class FactoryFixture(object):
 
     def __init__(self):
         pass
-
-

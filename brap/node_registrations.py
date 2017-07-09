@@ -1,5 +1,6 @@
 import itertools
 
+
 def extract_edges_from_callable(fn):
     """
     This takes args and kwargs provided, and returns the names of the strings
@@ -37,11 +38,12 @@ def extract_edges_from_callable(fn):
 
 class Registration(object):
     """
-    Registration remembers how nodes for a graph are registered, and can 
+    Registration remembers how nodes for a graph are registered, and can
     determine things such as what the edges it was registered with are
 
     This is how a pre-compiled graph can dig into the way a node was registered
     """
+
     def __init__(self, node_id):
         self.id = node_id
 
@@ -62,7 +64,7 @@ class ParameterRegistration(Registration):
 
 
 class FunctionRegistration(Registration):
-    def __init__(self, node_id, function_reference, call = lambda c: ()):
+    def __init__(self, node_id, function_reference, call=lambda c: ()):
         super().__init__(node_id)
         self._function_reference = function_reference
         self._call = call
@@ -72,14 +74,22 @@ class FunctionRegistration(Registration):
 
 
 class ClassRegistration(Registration):
-    def __init__(self, node_id, class_reference, constructor_call = lambda c: (), method_calls = []):
+    def __init__(
+            self,
+            node_id,
+            class_reference,
+            constructor_call=lambda c: (),
+            method_calls=[]):
+
         super().__init__(node_id)
         self._class_reference = class_reference
         self._constructor_call = constructor_call
         self._method_calls = method_calls
 
     def get_edges(self):
-        method_edges = [extract_edges_from_callable(dep[1]) for dep in self._method_calls]
-        edges = list(extract_edges_from_callable(self._constructor_call)) + list(itertools.chain(*method_edges))
+        method_edges = [extract_edges_from_callable(
+            dep[1]) for dep in self._method_calls]
+        edges = list(extract_edges_from_callable(
+            self._constructor_call)) + list(itertools.chain(*method_edges))
 
         return edges
