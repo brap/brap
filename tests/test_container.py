@@ -1,29 +1,10 @@
 from unittest import TestCase
+from unittest.mock import MagicMock
 import uuid  # Used to ensure multiple results are different
 
-from brap.container import Container, ProviderInterface
+from tests.fixtures import FixtureService, FactoryFixture
 
-
-class FixtureService(object):
-    """
-    Only used to provide a sample for tests
-    """
-
-    def __init__(self, value):
-        self.value = value
-        self.other_value = None
-
-    def set_other_value(self, other_value):
-        self.other_value = other_value
-
-
-class FactoryFixture(object):
-    """
-    Only used to provide a sample for tests
-    """
-
-    def __init__(self):
-        pass
+from brap.container import Container
 
 
 class ContainerTestCase(TestCase):
@@ -33,130 +14,130 @@ class ContainerTestCase(TestCase):
             container.get('not_a_real_id')
 
     def test_set_and_get_by_id_for_class(self):
-        container = Container()
+        spy_graph = MagicMock()
+        container = Container(spy_graph)
         container.set('fixture_service_param', 1)
-        container.set('fixture_service', FixtureService,
-                lambda c: c('fixture_service_param'))
-        fixture_service = container.get('fixture_service')
-
-        self.assertTrue(isinstance(fixture_service, FixtureService))
+        container.set(
+            'fixture_service',
+            FixtureService,
+            lambda c: c('fixture_service_param')
+        )
+        container.get('fixture_service')
+        spy_graph.get_node_by_id.assert_called_with('fixture_service')
 
     def test_set_and_get_by_id_with_kwarg_for_class(self):
-        container = Container()
+        spy_graph = MagicMock()
+        container = Container(spy_graph)
         container.set('fixture_service_param', 1)
-        container.set('fixture_service', FixtureService,
-                lambda c: c(value='fixture_service_param'))
-        fixture_service = container.get('fixture_service')
+        container.set(
+            'fixture_service',
+            FixtureService,
+            lambda c: c(value='fixture_service_param')
+        )
+        container.get('fixture_service')
 
-        self.assertTrue(isinstance(fixture_service, FixtureService))
+        spy_graph.get_node_by_id.assert_called_with('fixture_service')
 
     def test_set_and_get_by_id_for_strings(self):
-        container = Container()
+        spy_graph = MagicMock()
+        container = Container(spy_graph)
         container.set('param', 'Some param')
-        param = container.get('param')
+        container.get('param')
 
-        self.assertEqual('Some param', param)
+        node = spy_graph.get_node_by_id.assert_called_with('param')
 
-    def test_set_and_get_by_id_for_class(self):
-        container = Container()
+    def test_merge(self):
+        spy_graph1 = MagicMock()
+        container1 = Container(spy_graph1)
 
-        def test_fn():
-            return uuid.uuid4()
+        spy_graph2 = MagicMock()
+        container2 = Container(spy_graph2)
 
-        container.set('fn', test_fn)
-        call1 = container.get('fn')
-        call2 = container.get('fn')
+        container1.merge(container2)
 
-        self.assertNotEqual(call1, call2)
+        node = spy_graph1.merge.assert_called_with(spy_graph2)
 
-    def test_two_containers_do_not_share_services(self):
-        container1 = Container()
-        container2 = Container()
 
-        container1.set('fixture_service_param', 'container1')
-        container2.set('fixture_service_param', 'container2')
+# TODO test these at integration level, good things to check, but not valuable
+# as unit tests
+#   def test_two_containers_do_not_share_services(self):
+#       spy_graph1 = MagicMock()
+#       container1 = Container(spy_graph1)
 
-        # Intentionally giving services same id
-        container1.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
-        container2.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
+#       spy_graph2 = MagicMock()
+#       container2 = Container(spy_graph2)
 
-        s1 = container1.get('ser1')
-        s2 = container2.get('ser1')
-        self.assertEqual('container1', s1.value)
-        self.assertEqual('container2', s2.value)
+#       container1.set('fixture_service_param', 'container1')
+#       container2.set('fixture_service_param', 'container2')
 
-    def test_service_returns_same_object(self):
-        container = Container()
-        container.set('fixture_service_param', 'container1')
-        container.set('ser1', FixtureService, lambda c: c('fixture_service_param'))
+#       # Intentionally giving services same id
+#       container1.set('ser1', FixtureService,
+#           lambda c: c('fixture_service_param'))
+#       container2.set('ser1', FixtureService,
+#           lambda c: c('fixture_service_param'))
 
-        s1 = container.get('ser1')
-        s1_retrieved_twice = container.get('ser1')
-        self.assertEqual(s1, s1_retrieved_twice)
+#       s1 = container1.get('ser1')
+#       s2 = container2.get('ser1')
+#       self.assertEqual('container1', s1.value)
+#       self.assertEqual('container2', s2.value)
 
-    def test_none_is_a_valid_parameter(self):
-        container = Container()
-        container.set('param', None)
-        param = container.get('param')
-        self.assertEqual(None, param)
+#   def test_service_returns_same_object(self):
+#       container = Container()
+#       container.set('fixture_service_param', 'container1')
+#       container.set('ser1', FixtureService,
+#           lambda c: c('fixture_service_param'))
 
-    def test_set_by_factory_and_get_by_id(self):
-        container = Container()
+#       s1 = container.get('ser1')
+#       s1_retrieved_twice = container.get('ser1')
+#       self.assertEqual(s1, s1_retrieved_twice)
 
-        container.factory('factory', FactoryFixture)
-        fac1 = container.get('factory')
-        fac2 = container.get('factory')
+#   def test_none_is_a_valid_parameter(self):
+#       container = Container()
+#       container.set('param', None)
+#       param = container.get('param')
+#       self.assertEqual(None, param)
 
-        self.assertNotEqual(fac1, fac2)
+#   def test_set_by_factory_and_get_by_id(self):
+#       container = Container()
 
-    def test_set_and_get_by_id_for_class_with_method_calls(self):
-        container = Container()
+#       container.factory('factory', FactoryFixture)
+#       fac1 = container.get('factory')
+#       fac2 = container.get('factory')
 
-        # I mix short and long form names to test against the key/value being confused internally
-        container.set('const_param', 'constructor_param')
-        container.set('meth_param', 'method_param')
-        container.set('fixture_service',
-                      FixtureService,
-                      lambda c: c('const_param'),
-                      [
-                          ('set_other_value', lambda c: c('meth_param'))
-                      ]
-                      )
-        fixture_service = container.get('fixture_service')
-        self.assertEqual(fixture_service.value, 'constructor_param')
-        self.assertEqual(fixture_service.other_value, 'method_param')
+#       self.assertNotEqual(fac1, fac2)
 
-    def test_set_and_get_by_id_for_class_with_method_calls_with_kwargs(self):
-        container = Container()
+#   def test_set_and_get_by_id_for_class_with_method_calls(self):
+#       container = Container()
 
-        # I mix short and long form names to test against the key/value being confused internally
-        container.set('const_param', 'constructor_param')
-        container.set('meth_param', 'method_param')
-        container.set('fixture_service',
-                      FixtureService,
-                      lambda c: c('const_param'),
-                      [
-                          ('set_other_value', lambda c: c(other_value='meth_param'))
-                      ]
-                      )
-        fixture_service = container.get('fixture_service')
-        self.assertEqual(fixture_service.value, 'constructor_param')
-        self.assertEqual(fixture_service.other_value, 'method_param')
+#       # I mix short and long form names to test against the key/value being
+#       # confused internally
+#       container.set('const_param', 'constructor_param')
+#       container.set('meth_param', 'method_param')
+#       container.set('fixture_service',
+#                     FixtureService,
+#                     lambda c: c('const_param'),
+#                     [
+#                         ('set_other_value', lambda c: c('meth_param'))
+#                     ]
+#                     )
+#       fixture_service = container.get('fixture_service')
+#       self.assertEqual(fixture_service.value, 'constructor_param')
+#       self.assertEqual(fixture_service.other_value, 'method_param')
 
-    def test_register_provider(self):
-        class FixtureProvider(ProviderInterface):
-            def register(self, container):
-                container.set(
-                    'fixture_provided_service',
-                    FixtureService,
-                    lambda c: c('param')
-                )
+#   def test_set_and_get_by_id_for_class_with_method_calls_with_kwargs(self):
+#       container = Container()
 
-        container = Container()
-        # Intentionally defined before fixture_param.
-        container.registerProvider(FixtureProvider())
-        # Intentionally defined after registering provider to ensure lazy loading.
-        container.set('param', 'fixture_param')
-        provided = container.get('fixture_provided_service')
-
-        self.assertEqual('fixture_param', provided.value)
+#       # I mix short and long form names to test against the key/value being
+#       # confused internally
+#       container.set('const_param', 'constructor_param')
+#       container.set('meth_param', 'method_param')
+#       container.set('fixture_service',
+#               FixtureService,
+#               lambda c: c('const_param'),
+#               [
+#                   ('set_other_value', lambda c: c(other_value='meth_param'))
+#               ]
+#           )
+#       fixture_service = container.get('fixture_service')
+#       self.assertEqual(fixture_service.value, 'constructor_param')
+#       self.assertEqual(fixture_service.other_value, 'method_param')

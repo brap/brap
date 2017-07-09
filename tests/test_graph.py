@@ -1,15 +1,14 @@
 from unittest import TestCase
 
-from brap.graph import Graph, RegisteredNode, GraphAnalyzer
+from tests.fixtures import FixtureService
 
-
-class FixtureService(object):
-    """
-    Only used to provide a sample for tests
-    """
-
-    def __init__(self, value):
-        self.value = value
+from brap.graph import Graph
+from brap.nodes import RegisteredNode
+from brap.node_registrations import (
+    ParameterRegistration,
+    FunctionRegistration,
+    ClassRegistration,
+)
 
 
 class GraphTestCase(TestCase):
@@ -17,170 +16,76 @@ class GraphTestCase(TestCase):
         graph = Graph()
         self.assertTrue(isinstance(graph, Graph))
 
-    def test_create_service_node(self):
-        serviceNode = RegisteredNode(
-            'RegisteredNode',
-            ['service', 'service1']
-        )
-        self.assertTrue(isinstance(serviceNode, RegisteredNode))
-
-    def test_create_service_node_returns_id(self):
-        serviceNode = RegisteredNode(
-            'RegisteredNode',
-            ['service', 'service1']
-        )
-        self.assertEqual('RegisteredNode', serviceNode.get_id())
-
     def test_nodes_added_to_graph_can_be_retrieved(self):
         graph = Graph()
 
-        serviceNode1 = RegisteredNode('RegisteredNode1')
-        serviceNode2 = RegisteredNode('RegisteredNode2')
+        reg1 = ParameterRegistration('reg1', 'v1')
+        reg2 = ParameterRegistration('reg2', 'v2')
 
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
+        graph.register(reg1)
+        graph.register(reg2)
 
-        self.assertEqual('RegisteredNode1', graph.get_node_by_id(
-            'RegisteredNode1').get_id())
-        self.assertEqual('RegisteredNode2', graph.get_node_by_id(
-            'RegisteredNode2').get_id())
+        self.assertEqual('reg1', graph.get_node_by_id('reg1').get_id())
+        self.assertEqual('reg2', graph.get_node_by_id('reg2').get_id())
 
     def test_duplicate_node_id_rejection(self):
         graph = Graph()
 
-        serviceNode1 = RegisteredNode('common_id')
-        serviceNode2 = RegisteredNode('common_id')
+        reg1 = ParameterRegistration('reg1', 'v1')
+        reg2 = ParameterRegistration('reg1', 'v2')  # Intentionally same ID
 
-        with self.assertRaises(ValueError):  # TODO more specific exception
-            graph.add_node(serviceNode1)
-            graph.add_node(serviceNode2)
+        with self.assertRaises(ValueError):
+            graph.register(reg1)
+            graph.register(reg2)
 
     def test_create_node_with_dependency(self):
         graph = Graph()
 
-        serviceNode1 = RegisteredNode('RegisteredNode1')
-        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
-        serviceNode3 = RegisteredNode(
-            'RegisteredNode3', ['RegisteredNode2', 'RegisteredNode1'])
+        reg1 = ParameterRegistration('reg1', 'v1')
+        reg2 = ParameterRegistration('reg2', 'v2')
 
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
-        graph.add_node(serviceNode3)
-
-        self.assertEqual(sorted([
-            ('RegisteredNode1', []),
-            ('RegisteredNode2', ['RegisteredNode1']),
-            ('RegisteredNode3', ['RegisteredNode2', 'RegisteredNode1']),
-        ]), sorted(graph.get_dependency_lists()))
-
-    def test_create_node_with_unregistered_dependency(self):
-        graph = Graph()
-
-        serviceNode1 = RegisteredNode('RegisteredNode1', ['Unregistered'])
-
-        graph.add_node(serviceNode1)
-
-        # FIXME Fails on python3.5 due to "Unregistered" being first element.
-        # self.assertEqual([
-        #    ('Unregistered', []),
-        #    ('RegisteredNode1', ['Unregistered']),
-        # ], graph.get_dependency_lists())
-
-    def test_create_node_with_unregistered_dependency_complex(self):
-        graph = Graph()
-
-        serviceNode1 = RegisteredNode('RegisteredNode1')
-        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
-        serviceNode3 = RegisteredNode(
-            'RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
-
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
-        graph.add_node(serviceNode3)
-
-        # FIXME Fails on python3.5 due to "Unregistered" being first element.
-        # self.assertEqual([
-        #    ('RegisteredNode1', []),
-        #    ('RegisteredNode2', ['RegisteredNode1']),
-        #    ('Unregistered', []),
-        #    ('RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
-        # ], graph.get_dependency_lists())
-
-
-class GraphAnalyzerTestCase(TestCase):
-    def test_topological_sort_basic(self):
-        graph = Graph()
-
-        serviceNode1 = RegisteredNode('RegisteredNode1')
-        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
-
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
-
-        analysis = GraphAnalyzer(graph)
-
-        self.assertEqual([], analysis.get_unregistered_nodes())
-        self.assertEqual([], analysis.get_circular_dependencies())
-        self.assertEqual(
-            ['RegisteredNode1', 'RegisteredNode2'],
-            [node.get_id() for node in analysis.get_sorted_nodes()]
+        reg1 = ParameterRegistration('reg1', 'p1')
+        reg2 = ClassRegistration('reg2', FixtureService, lambda c: c('reg1'))
+        reg3 = ClassRegistration(
+            'reg3',
+            FixtureService,
+            lambda c: c('reg1', 'reg2')
         )
 
-    def test_topological_sort_complex(self):
-        graph = Graph()
+        graph.register(reg1)
+        graph.register(reg2)
+        graph.register(reg3)
 
-        serviceNode1 = RegisteredNode('RegisteredNode1')
-        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
-        serviceNode3 = RegisteredNode(
-            'RegisteredNode3', ['RegisteredNode2', 'Unregistered'])
-        serviceNode4 = RegisteredNode(
-            'RegisteredNode4', ['RegisteredNode2', 'Unregistered'])
+        self.assertEqual(['reg1', 'reg2', 'reg3'], list(graph.get_nodes()))
 
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
-        graph.add_node(serviceNode3)
-        graph.add_node(serviceNode4)
+    def test_graph_merge_pre_existing(self):
+        graph1 = Graph()
+        graph2 = Graph()
 
-        analysis = GraphAnalyzer(graph)
+        g1r = ParameterRegistration('r0', 'g1r')
+        g2r = ParameterRegistration('r0', 'g2r')
 
+        graph1.register(g1r)
+        graph2.register(g2r)
+        graph1.merge(graph2)
+
+        self.assertEqual(['r0'], list(graph1.get_nodes()))
+
+        # this is kind of hacky
         self.assertEqual(
-            ['Unregistered'],
-            [node.get_id() for node in analysis.get_unregistered_nodes()]
+            'g1r',
+            graph1.get_node_by_id('r0')._registration._value
         )
-        self.assertEqual([], analysis.get_circular_dependencies())
 
-        # FIXME Fails on python3.5 due to "Unregistered" being first element.
-        # self.assertEqual(
-        #    [
-        #        'RegisteredNode1',
-        #        'RegisteredNode2',
-        #        'Unregistered',
-        #        'RegisteredNode3',
-        #        'RegisteredNode4'
-        #    ],
-        #    [node.get_id() for node in analysis.get_sorted_nodes()]
-        # )
+    def test_graph_merge_new_nodes(self):
+        graph1 = Graph()
+        graph2 = Graph()
 
-    def test_topological_sort_with_cycles(self):
-        graph = Graph()
+        g1r = ParameterRegistration('r0', 'g1r')
+        g2r = ParameterRegistration('r1', 'g2r')
 
-        serviceNode1 = RegisteredNode('RegisteredNode1', ['RegisteredNode3'])
-        serviceNode2 = RegisteredNode('RegisteredNode2', ['RegisteredNode1'])
-        serviceNode3 = RegisteredNode('RegisteredNode3', ['RegisteredNode2'])
+        graph1.register(g1r)
+        graph2.register(g2r)
+        graph1.merge(graph2)
 
-        graph.add_node(serviceNode1)
-        graph.add_node(serviceNode2)
-        graph.add_node(serviceNode3)
-
-        analysis = GraphAnalyzer(graph)
-
-        self.assertEqual([], analysis.get_unregistered_nodes())
-        self.assertEqual(
-            sorted([
-                'RegisteredNode3',
-                'RegisteredNode1',
-                'RegisteredNode2',
-            ]),
-            sorted([node.get_id()
-                    for node in analysis.get_circular_dependencies()])
-        )
+        self.assertEqual(['r0', 'r1'], list(graph1.get_nodes()))
