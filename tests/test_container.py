@@ -47,6 +47,18 @@ class ContainerTestCase(TestCase):
 
         node = spy_graph.get_node_by_id.assert_called_with('param')
 
+    def test_merge(self):
+        spy_graph1 = MagicMock()
+        container1 = Container(spy_graph1)
+
+        spy_graph2 = MagicMock()
+        container2 = Container(spy_graph2)
+
+        container1.merge(container2)
+
+        node = spy_graph1.merge.assert_called_with(spy_graph2)
+
+
 # TODO test these at integration level, good things to check, but not valuable as unit tests
 #   def test_two_containers_do_not_share_services(self):
 #       spy_graph1 = MagicMock()
