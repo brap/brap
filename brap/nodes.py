@@ -36,3 +36,16 @@ class RegisteredNode(Node):
     def get_tags(self):
         return self._tags
 
+class UnregisteredNode(Node):
+    """
+    Nodes that haven't been registered (likely created via an edge)
+    """
+    def __init__(self, id):
+        self._node_id = id
+
+    def get_id(self):
+        return self._node_id
+
+    def get_edges(self):
+        return []
+

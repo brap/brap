@@ -1,14 +1,14 @@
-from brap.nodes import RegisteredNode
+from brap.nodes import RegisteredNode, UnregisteredNode
 from brap.node_registrations import Registration
 
 class Graph(object):
     def __init__(self):
         self._nodeMap = {}
 
-    def add_node(self, registration):
+    def register(self, registration):
         if not isinstance(registration, Registration):
             raise ValueError('Provided object {} is not a Registration'.format(
-                registration.__class__.__name__))  # Fixme more specific exception type
+                registration.__class__.__name__))
 
         # Only add new nodes. Only replace UnregisteredNode
         if registration.get_id() in self._nodeMap:
@@ -22,7 +22,7 @@ class Graph(object):
         self._nodeMap[registered_node.get_id()] = registered_node
 
     def get_node_by_id(self, node_id):
-        return self._nodeMap[node_id]  # TODO if not present, exception
+        return self._nodeMap[node_id]
 
     def get_nodes(self):
         return self._nodeMap

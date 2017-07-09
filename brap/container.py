@@ -42,18 +42,18 @@ class Container(object):
         # check if value is class
         if isinstance(value, type):
             registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
-            self._graph.add_node(registration)
+            self._graph.register(registration)
             return self
 
         # check if value is function
         if callable(value):
             registration = FunctionRegistration(id, value, constructor_dependencies)
-            self._graph.add_node(registration)
+            self._graph.register(registration)
             return self
 
         # when value is something else
         registration = ParameterRegistration(id, value)
-        self._graph.add_node(registration)
+        self._graph.register(registration)
         return self
 
     def factory(self, id, callable_factory, constructor_dependencies=lambda c: c(), method_dependencies=[]):
@@ -65,5 +65,5 @@ class Container(object):
             raise Exception('FIXME better exception')
 
         registration = ClassRegistration(id, value, constructor_dependencies, method_dependencies)
-        self._graph.add_node(registration)
+        self._graph.register(registration)
         return self

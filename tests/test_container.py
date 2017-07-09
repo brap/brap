@@ -1,7 +1,7 @@
 from unittest import TestCase
 import uuid  # Used to ensure multiple results are different
 
-from brap.container import Container, ProviderInterface
+from brap.container import Container
 
 
 class FixtureService(object):
@@ -142,21 +142,3 @@ class ContainerTestCase(TestCase):
         fixture_service = container.get('fixture_service')
         self.assertEqual(fixture_service.value, 'constructor_param')
         self.assertEqual(fixture_service.other_value, 'method_param')
-
-    def test_register_provider(self):
-        class FixtureProvider(ProviderInterface):
-            def register(self, container):
-                container.set(
-                    'fixture_provided_service',
-                    FixtureService,
-                    lambda c: c('param')
-                )
-
-        container = Container()
-        # Intentionally defined before fixture_param.
-        container.registerProvider(FixtureProvider())
-        # Intentionally defined after registering provider to ensure lazy loading.
-        container.set('param', 'fixture_param')
-        provided = container.get('fixture_provided_service')
-
-        self.assertEqual('fixture_param', provided.value)
