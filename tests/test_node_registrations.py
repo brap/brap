@@ -17,22 +17,22 @@ class Extract_Edges_From_CallableTestCase(TestCase):
     def test_extract_edges_from_callable(self):
         def callable(c): return c('a', 'b', kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
-        self.assertEqual(['a', 'b', 'c', 'd'], edges)
+        self.assertEqual(set(['a', 'b', 'c', 'd']), set(edges))
 
     def test_extract_args_from_callable(self):
         def callable(c): return c('a', 'b')
         edges = extract_edges_from_callable(callable)
-        self.assertEqual(['a', 'b'], edges)
+        self.assertEqual(set(['a', 'b']), set(edges))
 
     def test_extract_kwargs_from_callable(self):
         def callable(c): return c(kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
-        self.assertEqual(['c', 'd'], edges)
+        self.assertEqual(set(['c', 'd']), set(edges))
 
     def test_extract_without_strings_is_exception(self):
         def callable(c): return c('a', 'b', kwarg_c='c', kwarg_d='d')
         edges = extract_edges_from_callable(callable)
-        self.assertEqual(['a', 'b', 'c', 'd'], edges)
+        self.assertEqual(set(['a', 'b', 'c', 'd']), set(edges))
 
     def test_extract_without_strings_is_exception(self):
         def callable(c): return c(1)

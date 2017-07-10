@@ -55,7 +55,7 @@ class GraphTestCase(TestCase):
         graph.register(reg2)
         graph.register(reg3)
 
-        self.assertEqual(['reg1', 'reg2', 'reg3'], list(graph.get_nodes()))
+        self.assertEqual(set(['reg1', 'reg2', 'reg3']), set(list(graph.get_nodes())))
 
     def test_graph_merge_pre_existing(self):
         graph1 = Graph()
@@ -87,4 +87,4 @@ class GraphTestCase(TestCase):
         graph2.register(g2r)
         graph1.merge(graph2)
 
-        self.assertEqual(['r0', 'r1'], list(graph1.get_nodes()))
+        self.assertEqual(set(['r0', 'r1']), set(list(graph1.get_nodes())))
