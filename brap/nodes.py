@@ -25,7 +25,7 @@ class RegisteredNode(Node):
 
     def get_value(self):
         raise Exception(
-                'Node "{}" requested before compiled.'.format(self.get_id()))
+            'Node "{}" requested before compiled.'.format(self.get_id()))
 
         def get_edges(self):
             return self._registration.get_edges()
@@ -38,18 +38,3 @@ class RegisteredNode(Node):
 
     def get_edges(self):
         return self._registration.get_edges()
-
-
-class UnregisteredNode(Node):
-    """
-    Nodes that haven't been registered (likely created via an edge)
-    """
-
-    def __init__(self, id):
-        self._node_id = id
-
-    def get_id(self):
-        return self._node_id
-
-    def get_edges(self):
-        return []
