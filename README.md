@@ -3,7 +3,7 @@
 Brap is a dependency injection container for Python3.
 
 
-[![Build Status](https://travis-ci.org/Incognito/brap.svg?branch=master)](https://travis-ci.org/Incognito/brap)
+[![Build Status](https://travis-ci.org/brap/brap.svg?branch=master)](https://travis-ci.org/Incognito/brap)
 
 
 ## Features!
