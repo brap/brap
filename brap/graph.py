@@ -1,4 +1,4 @@
-from brap.nodes import RegisteredNode, UnregisteredNode
+from brap.nodes import RegisteredNode
 from brap.node_registrations import Registration
 
 
@@ -9,15 +9,14 @@ class Graph(object):
     def _is_node_reserved(self, node):
         return node.get_id() in self._nodeMap
 
-    def _add_node(self, node):
+    def insert_node(self, node):
         """
-        Adds node if name is available or pre-existing node is unregistered
+        Adds node if name is available or pre-existing node
         returns True if added
         returns False if not added
         """
         if self._is_node_reserved(node):
-            if not isinstance(self._nodeMap[node.get_id()], UnregisteredNode):
-                return False
+            return False
 
         # Put node in map
         self._nodeMap[node.get_id()] = node
@@ -32,7 +31,7 @@ class Graph(object):
 
         registered_node = RegisteredNode(registration)
 
-        is_added = self._add_node(registered_node)
+        is_added = self.insert_node(registered_node)
 
         if not is_added:
             raise ValueError(
@@ -70,7 +69,7 @@ class Graph(object):
             node = subordinate_nodes[node_id]
             merge_results.append((
                 node.get_id(),
-                self._add_node(node)
+                self.insert_node(node)
             ))
 
         # TODO perhaps throw exception if merge was unsuccessful
