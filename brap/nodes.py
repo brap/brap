@@ -36,6 +36,9 @@ class RegisteredNode(Node):
     def get_tags(self):
         return self._tags
 
+    def get_edges(self):
+        return self._registration.get_edges()
+
 
 class UnregisteredNode(Node):
     """

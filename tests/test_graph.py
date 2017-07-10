@@ -3,7 +3,6 @@ from unittest import TestCase
 from tests.fixtures import FixtureService
 
 from brap.graph import Graph
-from brap.nodes import RegisteredNode
 from brap.node_registrations import (
     ParameterRegistration,
     FunctionRegistration,
