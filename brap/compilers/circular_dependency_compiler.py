@@ -95,7 +95,7 @@ class CircularDependencyCompiler(Compiler):
     def compile(self, graph):
         self._sorted_graph = self._graph_sorter(graph)
 
-        if self._sorted_graph.get_circular_dependencies() == []:
+        if self._sorted_graph.get_circular_dependencies() != []:
             raise Exception('Found circular dependencies: {}'.format(
                 self._sorted_graph.get_circular_dependencies()
             ))
