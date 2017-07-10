@@ -87,14 +87,15 @@ class GraphSorter(Compiler):
 
 
 class CircularDependencyCompiler(Compiler):
+    # TODO think about how to plug analytics into here
     def __init__(self, graph_sorter=GraphSorter):
         self._graph_sorter = graph_sorter
+        self._sorted_graph = None
 
     def compile(self, graph):
-        sorted_graph = self._graph_sorter(graph)
+        self._sorted_graph = self._graph_sorter(graph)
 
-        if sorted_graph.get_circular_dependencies():
-            pass
-
-        if sorted_graph.get_sorted_nodes():
-            pass
+        if self._sorted_graph.get_circular_dependencies() == []:
+            raise Exception('Found circular dependencies: {}'.format(
+                self._sorted_graph.get_circular_dependencies()
+            ))
