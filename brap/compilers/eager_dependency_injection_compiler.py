@@ -12,7 +12,7 @@ class EagerDependencyInjectionCompiler(object):
         nodes = graph.get_nodes()
 
         for node_id in nodes:
-            eager_node = self.transform_registered_node(node)
+            eager_node = self.transform_registered_node(nodes[node_id])
             pass
 
     def transform_registered_node(self, node):

@@ -45,7 +45,7 @@ class EagerDependencyInjectionCompilerTestCase(TestCase):
             )
         )
 
-        compiler = CircularDependencyCompiler()
+        compiler = EagerDependencyInjectionCompiler()
         compiler.compile(graph)
         # Not raising the error is the test
 
