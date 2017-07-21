@@ -5,7 +5,7 @@ from brap.nodes import Node
 
 
 class EagerDependencyInjectionCompiler(object):
-    def __init__(self):
+    def __init__(self, service_node, function_node, parameter_node):
         pass
 
     def compile(self, graph):
@@ -15,10 +15,11 @@ class EagerDependencyInjectionCompiler(object):
             eager_node = self.transform_registered_node(nodes[node_id])
             pass
 
-    def transform_registered_node(self, node):
-        pass
+class EagerNodeFactory():
+    def from_registration():
+        raise Exception('This is a base class, do not actually use it.')
 
-    # TODO maybe this goes into a special home
+class CallableEagerNodeFactory(EagerNodeFactory):
     def hydrate_callable_with_container(container, callable_function, parameter_lambda):
         """
         args and kwargs intentionally not *args and **kwargs
@@ -42,6 +43,28 @@ class EagerDependencyInjectionCompiler(object):
 
         return callable_function(*arg_list, **kwarg_map)
 
+class ServiceEagerNodeFactory(CallableEagerNodeFactory):
+    def from_registration(registration):
+        instance = hydrate_callable_with_container(self, value, constructor_dependencies)
+        for method_map in method_dependencies:
+            method = getattr(instance, method_map[0])
+            hydrate_callable_with_container(self, method, method_map[1])
+
+        id = 'FIXME_inst'
+        return ServiceEagerNode(id, value)
+
+class FunctionEagerNodeFactory(CallableEagerNodeFactory):
+    def from_registration(registration):
+        func = hydrate_callable_with_container(self, value, constructor_dependencies)
+
+        id = 'FIXME_func'
+        return ServiceEagerNode(id, func)
+
+class ParameterEagerNodeFactory(EagerNode):
+    def from_registration(registration):
+        id = 'FIXME_param'
+        value = 'fixme value'
+        return ServiceEagerNode(id, value)
 
 class EagerNode(Node):
     def __init__(self):
@@ -53,57 +76,35 @@ class EagerNode(Node):
     def get_value(self):
         raise Exception('Abstract Eager Nodes do not have values')
 
-    def get_edges(self):
-        raise Exception('Do we care here? FIXME')
 
-
-class ServiceEagerNode(Node):
-    def __init__(self):
-        self._id = None
-        self._instance = None
+class ServiceEagerNode(EagerNode):
+    def __init__(self, id, instance):
+        self._id = id
+        self._instance = instance
 
     def get_value(self):
-        def class_value():
-            if id in self._memoized:
-                return self._instances[id]
+        return self._instance
 
-            instance = hydrate_callable_with_container(self, value, constructor_dependencies)
-            for method_map in method_dependencies:
-                method = getattr(instance, method_map[0])
-                hydrate_callable_with_container(self, method, method_map[1])
-
-            self._instances[id] = instance
-            return instance
-
-
-class ParameterEagerNode(Node):
-    def __init__(self):
-        self._id = None
-        self._instance = None
+class ParameterEagerNode(EagerNode):
+    def __init__(self, id, value):
+        self._id = id
+        self._value = value
 
     def get_value(self):
-        raise Exception('TODO')
+        return self._value
 
 
-class FunctionEagerNode(Node):
-    def __init__(self):
-        self._id = None
-        self._value = "TODO"
-        self._ = "TODO"
+class FunctionEagerNode(EagerNode):
+    def __init__(self, id, func):
+        self._id = id
+        self._func = func
 
     def get_value(self):
-        def fn_value():
-            #container_constructor_deps = [
-            #    self.get(id) for id in extract_edges_from_callable(constructor_dependencies)]
-            result = caller(*self._container_constructor_deps)
-
-            return result
-
-        return fn_value
+        return self._func
 
 
-# TODO more meta-level, not sure how to define this one.
-class FactoryEagerNode(Node):
+# TODO more meta-level, not sure how to define this one. yet.
+class FactoryEagerNode(EagerNode):
     def __init__(self):
         self._id = None
         self._instance = None
