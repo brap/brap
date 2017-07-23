@@ -2,6 +2,11 @@ from unittest import TestCase
 
 from brap.graph import Graph
 
+from brap.node_registrations import (
+    ClassRegistration,
+    FunctionRegistration,
+    ParameterRegistration
+)
 
 class FixtureService(object):
     """

@@ -3,6 +3,13 @@ import copy
 from brap.compilers.compiler import Compiler
 from brap.nodes import Node
 
+from brap.compilers.circular_dependency_compiler import GraphSorter
+
+from brap.node_registrations import (
+    ParameterRegistration,
+    FunctionRegistration,
+    ClassRegistration,
+)
 
 class EagerNode(Node):
     def __init__(self):
@@ -55,8 +62,9 @@ class EagerNodeFactory():
     def from_registration():
         raise Exception('This is a base class, do not actually use it.')
 
+
 class CallableEagerNodeFactory(EagerNodeFactory):
-    def hydrate_callable_with_container(container, callable_function, parameter_lambda):
+    def hydrate_callable_with_edge_node_map(self, edge_node_map, callable_function, parameter_lambda):
         """
         args and kwargs intentionally not *args and **kwargs
         """
@@ -70,46 +78,93 @@ class CallableEagerNodeFactory(EagerNodeFactory):
         args = parameter_lambda(extract_args_list)
         kwargs = parameter_lambda(extract_kwargs_dict)
 
-        arg_list = [container.get(id) for id in list(args)]
+        arg_list = [edge_node_map[id] for id in list(args)]
 
         kwarg_map = {}
 
         for kwarg in kwargs:
-            kwarg_map[kwarg] = container.get(kwargs[kwarg])
+            kwarg_map[kwarg] = edge_node_map[kwargs[kwarg]]
 
         return callable_function(*arg_list, **kwarg_map)
 
 class ServiceEagerNodeFactory(CallableEagerNodeFactory):
-    def from_registration(registration):
-        instance = hydrate_callable_with_container(self, value, constructor_dependencies)
-        for method_map in method_dependencies:
-            method = getattr(instance, method_map[0])
-            hydrate_callable_with_container(self, method, method_map[1])
+    def from_registration(self, registration, service_map):
 
-        id = 'FIXME_inst'
-        return ServiceEagerNode(id, value)
+        class_reference = registration.get_class_reference()
+        constructor_call =  registration.get_constructor_call()
+        method_calls = registration.get_method_calls()
+
+        instance = self.hydrate_callable_with_edge_node_map(service_map, class_reference, constructor_call)
+
+        for method_map in method_calls:
+            method = getattr(instance, method_map[0])
+            self.hydrate_callable_with_edge_node_map(service_map, method, method_map[1])
+
+        id = registration.get_id()
+        return ServiceEagerNode(id, instance)
 
 class FunctionEagerNodeFactory(CallableEagerNodeFactory):
-    def from_registration(registration):
-        func = hydrate_callable_with_container(self, value, constructor_dependencies)
-
-        id = 'FIXME_func'
+    def from_registration(self, registration, service_map):
+        value = lambda: None # FIXME
+        constructor_dependencies = lambda c:() # FIXME
+        func = self.hydrate_callable_with_edge_node_map(service_map, value, constructor_dependencies)
+        id = registration.get_id()
+        func = registration.get_callable()
         return ServiceEagerNode(id, func)
 
 class ParameterEagerNodeFactory(EagerNode):
-    def from_registration(registration):
-        id = 'FIXME_param'
-        value = 'fixme value'
+    def from_registration(self, registration):
+        id = registration.get_id()
+        value = registration.get_value()
         return ServiceEagerNode(id, value)
 
 
 class EagerDependencyInjectionCompiler(object):
-    def __init__(self):
-        pass
+    def __init__(
+            self,
+            graph_sorter=GraphSorter,
+            service_factory = ServiceEagerNodeFactory,
+            parameter_factory = ParameterEagerNodeFactory,
+            function_factory = FunctionEagerNodeFactory
+            ):
+        self._graph_sorter = graph_sorter
+        self._sorted_graph = None
+        self.service_factory = service_factory
+        self.parameter_factory = parameter_factory
+        self.function_factory = function_factory
 
     def compile(self, graph):
-        nodes = graph.get_nodes()
+        # todo might be interesting to make the graph aware
+        # of compiler passes and properties of those, would
+        # let me break the depenency on the import of a
+        # graph sorter
+        sorted_graph = self._graph_sorter(graph)
+        uncompiled_sorted_node_ids = sorted_graph.get_sorted_nodes()
 
-        for node_id in nodes:
-            # eager_node = self.transform_registered_node(nodes[node_id])
-            pass
+        while len(uncompiled_sorted_node_ids) == 0:
+            target_node_id = uncompiled_sorted_graph.pop(0)
+            uncompiled_target_node = graph.get_node_by_id(target_node_id)
+            target_node_edge_ids = uncompiled_target_node.get_edges()
+
+            edge_service_map = {}
+            for node_id in target_node_edge_ids:
+                edge_node_value_map[node_id] = graph.get_node_by_id().get_value()
+
+            target_node = self.create_eager_node(uncompiled_target_node, edge_service_map)
+
+    def create_eager_node(self, registered_node, edge_service_map):
+        registration = registration.get_registration()
+
+        if isinstance(registration, ParameterRegistration):
+            return self.parameter_factory.from_registration(registration)
+
+        if isinstance(registration, FunctionRegistration):
+            return self.function_factory.from_registration(
+                registration, edge_service_map
+            )
+
+        # FIXME do something with this for factory_factory
+        if isinstance(registration, ClassRegistration):
+            return self.service_factory.from_registration(
+                registration, edge_service_map
+            )

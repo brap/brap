@@ -59,6 +59,9 @@ class ParameterRegistration(Registration):
         super().__init__(node_id)
         self._value = value
 
+    def get_value(self):
+        return self._value
+
     def get_edges(self):
         return []
 
@@ -69,10 +72,14 @@ class FunctionRegistration(Registration):
         self._function_reference = function_reference
         self._call = call
 
+    def get_callable(self):
+        return self._call
+
     def get_edges(self):
         return extract_edges_from_callable(self._call)
 
 
+# TODO perhaps prohibit extension with final?
 class ClassRegistration(Registration):
     def __init__(
             self,
@@ -93,3 +100,12 @@ class ClassRegistration(Registration):
             self._constructor_call)) + list(itertools.chain(*method_edges))
 
         return edges
+
+    def get_class_reference(self):
+        return self._class_reference;
+
+    def get_constructor_call(self):
+        return self._constructor_call;
+
+    def get_method_calls(self):
+        return self._method_calls;

@@ -38,3 +38,6 @@ class RegisteredNode(Node):
 
     def get_edges(self):
         return self._registration.get_edges()
+
+    def get_registration(self):
+        return self._registration
