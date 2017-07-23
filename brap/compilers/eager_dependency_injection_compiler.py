@@ -105,18 +105,22 @@ class ServiceEagerNodeFactory(CallableEagerNodeFactory):
 
 class FunctionEagerNodeFactory(CallableEagerNodeFactory):
     def from_registration(self, registration, service_map):
-        value = lambda: None # FIXME
-        constructor_dependencies = lambda c:() # FIXME
-        func = self.hydrate_callable_with_edge_node_map(service_map, value, constructor_dependencies)
+        func = registration.get_function_reference()
+        call = registration.get_callable()
+
+        def curry_function():
+            return self.hydrate_callable_with_edge_node_map(
+                service_map, func, call
+            )
+
         id = registration.get_id()
-        func = registration.get_callable()
-        return ServiceEagerNode(id, func)
+        return FunctionEagerNode(id, curry_function)
 
 class ParameterEagerNodeFactory(EagerNode):
     def from_registration(self, registration):
         id = registration.get_id()
         value = registration.get_value()
-        return ServiceEagerNode(id, value)
+        return ParameterEagerNode(id, value)
 
 
 class EagerDependencyInjectionCompiler(object):

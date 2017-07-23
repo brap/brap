@@ -30,9 +30,12 @@ class ParameterEagerNodeFactoryTestCase(TestCase):
         parameter_eager_node = factory.from_registration(reg)
         self.assertEqual(parameter_eager_node.get_value(), 'param_value')
 
+
 class FunctionEagerNodeFactoryTestCase(TestCase):
     def test_from_registration_returns_function_eager_node(self):
-        def function_reference(): return None
+        def function_reference(a1, kwarg1):
+            return a1 + kwarg1
+
         factory = FunctionEagerNodeFactory()
         reg = FunctionRegistration(
             'function_registration_id',
@@ -41,12 +44,14 @@ class FunctionEagerNodeFactoryTestCase(TestCase):
         )
 
         service_map = {
-          'arg1': 'argument1',
-          'keywordarg1':  'keyword argument one'
+          'arg1': 1,
+          'keywordarg1': 10
         }
 
         function_eager_node = factory.from_registration(reg, service_map)
-        self.assertTrue(False) # TODO
+        function = function_eager_node.get_value()
+        self.assertEqual(function(), 11)  # Because Math
+
 
 class ServiceEagerNodeFactoryTestCase(TestCase):
     def test_from_registration_with_method_returns_service_eager_node(self):
@@ -85,6 +90,7 @@ class ServiceEagerNodeFactoryTestCase(TestCase):
         self.assertEqual(service.marg, 'method argument')
         self.assertEqual(service.mkwarg, 'method keyword argument')
 
+
 class ParameterEagerNodeTestCase(TestCase):
     def test_constructor(self):
         node = ParameterEagerNode('foo', 'param')
@@ -92,6 +98,7 @@ class ParameterEagerNodeTestCase(TestCase):
     def test_get_value(self):
         node = ParameterEagerNode('foo', 'param')
         self.assertEqual('param', node.get_value())
+
 
 class FunctionEagerNodeTestCase(TestCase):
     def test_constructor(self):

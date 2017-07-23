@@ -72,6 +72,9 @@ class FunctionRegistration(Registration):
         self._function_reference = function_reference
         self._call = call
 
+    def get_function_reference(self):
+        return self._function_reference
+
     def get_callable(self):
         return self._call
 
