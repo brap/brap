@@ -16,11 +16,14 @@ class Container(object):
     Stores parameters and callables
     """
 
-    def __init__(self, graph=Graph()):
+    def __init__(self, graph=None):
         """
         Instantiate the container.
         """
-        self._graph = graph
+        if graph:
+            self._graph = graph
+        else:
+            self._graph = Graph()
 
     def get(self, id):
         """
@@ -89,3 +92,6 @@ class Container(object):
             id, value, constructor_dependencies, method_dependencies)
         self._graph.register(registration)
         return self
+
+    def use_compiler(self, compiler):
+        compiler.compile(self._graph)

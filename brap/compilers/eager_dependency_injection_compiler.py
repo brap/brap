@@ -145,6 +145,7 @@ class EagerDependencyInjectionCompiler(object):
         sorted_graph = self._graph_sorter(graph)
         uncompiled_sorted_node_ids = sorted_graph.get_sorted_nodes()
 
+        # TODO filter out already eager nodes
         while len(uncompiled_sorted_node_ids) != 0:
             uncompiled_target_node = uncompiled_sorted_node_ids.pop(0)
             target_node_edge_ids = uncompiled_target_node.get_edges()
