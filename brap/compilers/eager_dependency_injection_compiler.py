@@ -127,15 +127,15 @@ class EagerDependencyInjectionCompiler(object):
     def __init__(
             self,
             graph_sorter=GraphSorter,
-            service_factory = ServiceEagerNodeFactory,
-            parameter_factory = ParameterEagerNodeFactory,
-            function_factory = FunctionEagerNodeFactory
+            service_factory = ServiceEagerNodeFactory(),
+            parameter_factory = ParameterEagerNodeFactory(),
+            function_factory = FunctionEagerNodeFactory()
             ):
         self._graph_sorter = graph_sorter
         self._sorted_graph = None
-        self.service_factory = service_factory
-        self.parameter_factory = parameter_factory
-        self.function_factory = function_factory
+        self._service_factory = service_factory
+        self._parameter_factory = parameter_factory
+        self._function_factory = function_factory
 
     def compile(self, graph):
         # todo might be interesting to make the graph aware
@@ -145,30 +145,34 @@ class EagerDependencyInjectionCompiler(object):
         sorted_graph = self._graph_sorter(graph)
         uncompiled_sorted_node_ids = sorted_graph.get_sorted_nodes()
 
-        while len(uncompiled_sorted_node_ids) == 0:
-            target_node_id = uncompiled_sorted_graph.pop(0)
-            uncompiled_target_node = graph.get_node_by_id(target_node_id)
+        while len(uncompiled_sorted_node_ids) != 0:
+            uncompiled_target_node = uncompiled_sorted_node_ids.pop(0)
             target_node_edge_ids = uncompiled_target_node.get_edges()
 
             edge_service_map = {}
             for node_id in target_node_edge_ids:
-                edge_node_value_map[node_id] = graph.get_node_by_id().get_value()
+                edge_service_map[node_id] = graph.get_node_by_id(node_id).get_value()
 
-            target_node = self.create_eager_node(uncompiled_target_node, edge_service_map)
+            eager_node = self.create_eager_node(uncompiled_target_node, edge_service_map)
+
+            graph.replace_node(eager_node)
+
+        return graph
+
 
     def create_eager_node(self, registered_node, edge_service_map):
-        registration = registration.get_registration()
+        registration = registered_node.get_registration()
 
         if isinstance(registration, ParameterRegistration):
-            return self.parameter_factory.from_registration(registration)
+            return self._parameter_factory.from_registration(registration)
 
         if isinstance(registration, FunctionRegistration):
-            return self.function_factory.from_registration(
+            return self._function_factory.from_registration(
                 registration, edge_service_map
             )
 
         # FIXME do something with this for factory_factory
         if isinstance(registration, ClassRegistration):
-            return self.service_factory.from_registration(
+            return self._service_factory.from_registration(
                 registration, edge_service_map
             )

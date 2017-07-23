@@ -126,13 +126,13 @@ class EagerDependencyInjectionCompilerTestCase(TestCase):
         graph = Graph()
 
         graph.register(
-            ClassRegistration('reg1', FixtureService)
+            ParameterRegistration('reg1', 'param')
         )
         graph.register(
             ClassRegistration(
                 'reg2',
                 FixtureService,
-                lambda c: c()
+                lambda c: c('reg1')
             )
         )
 
@@ -140,20 +140,52 @@ class EagerDependencyInjectionCompilerTestCase(TestCase):
         compiler.compile(graph)
         # Not raising the error is the test
 
-    def test_(self):
+    def test_slightly_complex_graph(self):
         graph = Graph()
 
+        def function_reference(foo):
+            return 1 + foo
+
         graph.register(
-            ClassRegistration('reg1', FixtureService)
+            FunctionRegistration(
+                'meth2kwarg1',
+                function_reference,
+                lambda c: c(foo='p1')
+            )
+        )
+
+        graph.register(
+            ParameterRegistration('meth1arg1', 10)
+        )
+
+        graph.register(
+            ParameterRegistration('p1', 100)
+        )
+
+        graph.register(
+            ClassRegistration('reg1',
+                FixtureService,
+                lambda c: c('p1')
+            )
         )
         graph.register(
             ClassRegistration(
                 'reg2',
                 FixtureService,
-                lambda c: c()
+                lambda c: c('reg1'),
+                [
+                    ('method1', lambda c: c('meth1arg1')),
+                    ('method2', lambda c: c('meth2kwarg1')),
+                ]
             )
         )
 
         compiler = EagerDependencyInjectionCompiler()
-        compiler.compile(graph)
+        compiled = compiler.compile(graph)
+
+        service = compiled.get_node_by_id('reg2').get_value()
+
+        self.assertEqual(service.value.value, 100)
+        self.assertEqual(service.method1_value, 10)
+        self.assertEqual(service.method2_value(), 101)
         # Not raising the error is the test

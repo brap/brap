@@ -19,7 +19,7 @@ class FixtureService(object):
     def method1(self, value):
         self.method1_value = value
 
-    def method1(self, value):
+    def method2(self, value):
         self.method2_value = value
 
 

@@ -9,6 +9,10 @@ class Graph(object):
     def _is_node_reserved(self, node):
         return node.get_id() in self._nodeMap
 
+    def replace_node(self, node):
+        # TODO add test coverage for this
+        self._nodeMap[node.get_id()] = node
+
     def insert_node(self, node):
         """
         Adds node if name is available or pre-existing node
