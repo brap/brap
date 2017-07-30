@@ -1,6 +1,7 @@
 from functools import partial
 
 from brap.graph import Graph
+from copy import deepcopy
 
 from brap.node_registrations import (
     FunctionRegistration,
@@ -25,22 +26,24 @@ class Container(object):
         else:
             self._graph = Graph()
 
-    def get(self, id):
+    def get(self, node_id):
         """
         Gets a parameter or the closure defining an object.
         """
-        # fixme give graph a method to find value by ID
-        return self._graph.get_node_by_id(id).get_value()
+        return self._graph.get_value_by_node_id(node_id)
 
     def merge(self, subordinate_container):
         if not isinstance(subordinate_container, Container):
             raise Exception(
                 "Container is expected to only merge with a Container.")
 
-        self._graph.merge(subordinate_container._graph)
+        self._graph.merge(subordinate_container.get_graph_clone())
+
+    def get_graph_clone(self):
+        return deepcopy(self._graph)
 
     def set(self,
-            id,
+            node_id,
             value,
             constructor_dependencies=lambda c: c(),
             method_dependencies=[]):
@@ -48,19 +51,19 @@ class Container(object):
         # check if value is class
         if isinstance(value, type):
             registration = ClassRegistration(
-                id, value, constructor_dependencies, method_dependencies)
+                node_id, value, constructor_dependencies, method_dependencies)
             self._graph.register(registration)
             return self
 
         # check if value is function
         if callable(value):
             registration = FunctionRegistration(
-                id, value, constructor_dependencies)
+                node_id, value, constructor_dependencies)
             self._graph.register(registration)
             return self
 
         # when value is something else
-        registration = ParameterRegistration(id, value)
+        registration = ParameterRegistration(node_id, value)
         self._graph.register(registration)
         return self
 

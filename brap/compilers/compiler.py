@@ -1,3 +1,3 @@
 class Compiler(object):
-    def something(self):
-        pass
+    def compile(self, graph):
+        raise Exception('Must be defined')

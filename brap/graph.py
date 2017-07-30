@@ -4,14 +4,14 @@ from brap.node_registrations import Registration
 
 class Graph(object):
     def __init__(self):
-        self._nodeMap = {}
+        self._node_map = {}
 
     def _is_node_reserved(self, node):
-        return node.get_id() in self._nodeMap
+        return node.get_id() in self._node_map
 
     def replace_node(self, node):
         # TODO add test coverage for this
-        self._nodeMap[node.get_id()] = node
+        self._node_map[node.get_id()] = node
 
     def insert_node(self, node):
         """
@@ -23,7 +23,7 @@ class Graph(object):
             return False
 
         # Put node in map
-        self._nodeMap[node.get_id()] = node
+        self._node_map[node.get_id()] = node
         return True
 
     def register(self, registration):
@@ -45,10 +45,14 @@ class Graph(object):
             )
 
     def get_node_by_id(self, node_id):
-        return self._nodeMap[node_id]
+        return self._node_map[node_id]
+
+    def get_value_by_node_id(self, node_id):
+        return self._node_map[node_id].get_value()
+
 
     def get_nodes(self):
-        return self._nodeMap
+        return self._node_map
 
     def merge(self, subordinate_graph):
         """

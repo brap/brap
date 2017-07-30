@@ -1,7 +1,6 @@
 import copy
 
 from brap.compilers.compiler import Compiler
-from brap.nodes import Node
 
 
 class NodeVisitor(object):
@@ -49,9 +48,9 @@ class GraphSorter(Compiler):
         - Computes dependency weight
         """
         sorted_graph = []
-        nodeMap = self._graph.get_nodes()
+        node_map = self._graph.get_nodes()
 
-        nodes = [NodeVisitor(nodeMap[node]) for node in nodeMap]
+        nodes = [NodeVisitor(node_map[node]) for node in node_map]
 
         def get_pointers_for_edge_nodes(visitor_decorated_node):
             edges = []
