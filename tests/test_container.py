@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 import uuid  # Used to ensure multiple results are different
 
-from tests.fixtures import FixtureService, FactoryFixture
+from tests.fixtures import FixtureService
 
 from brap.container import Container
 

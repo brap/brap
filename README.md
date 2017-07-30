@@ -115,19 +115,10 @@ If your service requires injection-via-kwarg simply specify it in your lambda:
 
 ## Defining Factory Services
 
-A factory is just like a service, except when you call the factory it will
-return a new instance (instead of providing a reference to the single instance
-registered in the container).
+Factories are no longer directly part of brap.
 
-
-```python
-    container.factory(
-        'uuid',
-        uuid.uuid4  # Do not invoke with ()
-    )
-
-    container.get('uuid')  # Returns new uuid
-```
+They can be accomplished by creating a function which returns a new instance,
+or adding a compiler which will create them for you.
 
 
 ## Setting Parameters
@@ -154,10 +145,8 @@ This lets you do useful things such as:
 
 ## Defining Functions As Services
 
-I advise against doing this as it isn't clear what the use is, but I suspect
-you may find a place to use them when doing something messy and absurd so I put
-them in here to permit you the liberty of shooting yourself in the foot should
-you so wish.
+As it is hard to determine if a function is pure, all functions will execute
+each time with each parameter set instead of memoizing.
 
 ```python
     def some_function(x)
@@ -165,14 +154,19 @@ you so wish.
 
     container.set('x_value', 100)
 
-    container.factory(
+    container.set(
         'fn_ser',
         some_function
         lambda c: c('x_value')
     )
 
     container.get('fn_ser')  # Returns 101
+    container.get('fn_ser')  # Also returns 101
 ```
+
+For your own sanity, please be careful to not create impure functions with side
+efects.
+
 
 ## Providing Configuration to a Container
 
@@ -183,23 +177,22 @@ If you have an encapsulated concept that could in theory become a package, you
 may wish to define a simple provider interface:
 
 
-
 ```python
-    from brap import ProviderInterface
+    from brap import Container
 
-    class ERBTemplateEngineProvider(ProviderInterface):
-        def register(self, container):
-            container.set(
-                'file_parser',  # no magic here, string can be anything
-                ERBFileParser,  # Class we're using
-                lambda c: c('file_path_parameter')  # Services/parameters injected into constructor
-            )
+    vendor_container = Container()
 
-            container.set(
-                'template_engine',
-                TemplateEngine,
-                lambda c: c('file_parser')
-            )
+    thirdPartyContainer.set(
+        'file_parser',  # no magic here, string can be anything
+        ERBFileParser,  # Class we're using
+        lambda c: c('file_path_parameter')  # Services/parameters injected into constructor
+    )
+
+    thirdPartyContainer.set(
+        'template_engine',
+        TemplateEngine,
+        lambda c: c('file_parser')
+    )
 ```
 
 
@@ -208,6 +201,10 @@ Now in some other code base you can load all that configuration up:
 
 ```python
     container.set('file_path_parameter', '/path/to/templates')
-    container.register(ERBTemplateEngineProvider())
+    container.merge(vendor_container)
     rendered_template = container.get('template_engine').render('template.erb', {})
 ```
+
+This will only introduce new values in the container that were part of the
+vendor_container, existing keys will not be over-written, vendor_container is
+not modified.

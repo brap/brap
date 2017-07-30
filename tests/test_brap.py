@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 import uuid  # Used to ensure multiple results are different
 
-from tests.fixtures import FixtureService, FactoryFixture
+from tests.fixtures import FixtureService
 
 from brap.container import Container
 from brap.compilers.circular_dependency_compiler import (
@@ -58,16 +58,6 @@ class BrapTestCase(TestCase):
 
         param = container.get('param')
         self.assertEqual(None, param)
-
-# TODO support factories
-#   def test_set_by_factory_and_get_by_id(self):
-#       container = Container()
-
-#       container.factory('factory', FactoryFixture)
-#       fac1 = container.get('factory')
-#       fac2 = container.get('factory')
-
-#       self.assertNotEqual(fac1, fac2)
 
     def test_set_and_get_by_id_for_class_with_method_calls(self):
         container = Container()
