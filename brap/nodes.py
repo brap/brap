@@ -27,8 +27,8 @@ class RegisteredNode(Node):
         raise Exception(
             'Node "{}" requested before compiled.'.format(self.get_id()))
 
-        def get_edges(self):
-            return self._registration.get_edges()
+    def get_edges(self):
+        return self._registration.get_edges()
 
     def set_tags(self, tags):
         self._tags = tags
@@ -38,3 +38,6 @@ class RegisteredNode(Node):
 
     def get_edges(self):
         return self._registration.get_edges()
+
+    def get_registration(self):
+        return self._registration

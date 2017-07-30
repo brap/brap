@@ -82,8 +82,8 @@ class GraphSorter(Compiler):
         self._circular_dependencies = [
             node.get_node() for node in nodes if node.get_weight() > 0]
 
-        self._sorted_nodes = reversed(
-            [node.get_node() for node in sorted_graph])
+        self._sorted_nodes = list(reversed(
+            [node.get_node() for node in sorted_graph]))
 
 
 class CircularDependencyCompiler(Compiler):
