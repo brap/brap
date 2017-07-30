@@ -7,7 +7,7 @@ setup(
     author='Brian Graham',
     author_email='drakain@gmail.com',
     url='https://github.com/incognito/brap',
-    download_url='https://github.com/incognito/brap/tarball/2.0.0a1',
+    download_url='https://github.com/brap/brap/tarball/2.0.0a1',
     keywords=['dependency', 'injection', 'container'],
     classifiers=[],
 )
