@@ -1,6 +1,7 @@
 from functools import partial
 
 from brap.graph import Graph
+from copy import deepcopy
 
 from brap.node_registrations import (
     FunctionRegistration,
@@ -36,8 +37,10 @@ class Container(object):
             raise Exception(
                 "Container is expected to only merge with a Container.")
 
-        # FIXME this is private access
-        self._graph.merge(subordinate_container._graph)
+        self._graph.merge(subordinate_container.get_graph_clone())
+
+    def get_graph_clone(self):
+        return deepcopy(self._graph)
 
     def set(self,
             node_id,
