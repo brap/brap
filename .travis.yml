@@ -4,11 +4,14 @@ python:
   - "3.6"
   - "nightly"
 
-# install dependencies
-install: "pip install -r requirements.txt"
-
-# Install test runner
-install: "pip install nose"
+install:
+  - "pip install -r requirements.txt"
+  - "pip install nose python-coveralls"
 
 # run tests
-script: nosetests
+script:
+  - nosetests --with-coverage --cover-package=brap
+
+after_success:
+  - coverage xml
+  - coveralls
