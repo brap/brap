@@ -29,8 +29,7 @@ class Container(object):
         """
         Gets a parameter or the closure defining an object.
         """
-        # fixme give graph a method to find value by ID
-        return self._graph.get_node_by_id(node_id).get_value()
+        return self._graph.get_value_by_node_id(node_id)
 
     def merge(self, subordinate_container):
         if not isinstance(subordinate_container, Container):

@@ -47,6 +47,10 @@ class Graph(object):
     def get_node_by_id(self, node_id):
         return self._node_map[node_id]
 
+    def get_value_by_node_id(self, node_id):
+        return self._node_map[node_id].get_value()
+
+
     def get_nodes(self):
         return self._node_map
 

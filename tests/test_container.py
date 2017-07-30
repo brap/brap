@@ -23,7 +23,7 @@ class ContainerTestCase(TestCase):
             lambda c: c('fixture_service_param')
         )
         container.get('fixture_service')
-        spy_graph.get_node_by_id.assert_called_with('fixture_service')
+        spy_graph.get_value_by_node_id.assert_called_with('fixture_service')
 
     def test_set_and_get_by_id_with_kwarg_for_class(self):
         spy_graph = MagicMock()
@@ -36,7 +36,7 @@ class ContainerTestCase(TestCase):
         )
         container.get('fixture_service')
 
-        spy_graph.get_node_by_id.assert_called_with('fixture_service')
+        spy_graph.get_value_by_node_id.assert_called_with('fixture_service')
 
     def test_set_and_get_by_id_for_strings(self):
         spy_graph = MagicMock()
@@ -44,7 +44,7 @@ class ContainerTestCase(TestCase):
         container.set('param', 'Some param')
         container.get('param')
 
-        node = spy_graph.get_node_by_id.assert_called_with('param')
+        node = spy_graph.get_value_by_node_id.assert_called_with('param')
 
     def test_merge(self):
         spy_graph1 = MagicMock()
