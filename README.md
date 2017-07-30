@@ -15,7 +15,6 @@ Brap is a dependency injection container for Python3.
 * Inject via constructor
 * Inject via method calls
 * Define parameters into the container (Useful for a filesystem path or similar ideas)
-* Factories, for when you don't want the same instance
 * You get a reason to say "brap" in real life
 
 ## Usage
