@@ -48,16 +48,6 @@ class FunctionEagerNode(EagerNode):
         return self._func
 
 
-# TODO more meta-level, not sure how to define this one. yet.
-class FactoryEagerNode(EagerNode):
-    def __init__(self):
-        self._id = None
-        self._instance = None
-
-    def get_value(self):
-        raise Exception('TODO')
-
-
 class EagerNodeFactory():
     def from_registration():
         raise Exception('This is a base class, do not actually use it.')
@@ -172,7 +162,6 @@ class EagerDependencyInjectionCompiler(object):
                 registration, edge_service_map
             )
 
-        # FIXME do something with this for factory_factory
         if isinstance(registration, ClassRegistration):
             return self._service_factory.from_registration(
                 registration, edge_service_map
