@@ -45,10 +45,10 @@ class Registration(object):
     """
 
     def __init__(self, node_id):
-        self.id = node_id
+        self._node_id = node_id
 
     def get_id(self):
-        return self.id
+        return self._node_id
 
     def get_edges(self):
         raise Exception("Edges only computable for concrete registration")
@@ -105,10 +105,10 @@ class ClassRegistration(Registration):
         return edges
 
     def get_class_reference(self):
-        return self._class_reference;
+        return self._class_reference
 
     def get_constructor_call(self):
-        return self._constructor_call;
+        return self._constructor_call
 
     def get_method_calls(self):
-        return self._method_calls;
+        return self._method_calls
